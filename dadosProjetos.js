@@ -1,0 +1,333 @@
+
+const projetos = [
+    { id: 1, titulo: "Energia Solar na Escola", categoria: "Tecnologia", cor: "#1265df", autor: "Maria Rita", org: "Escola Técnica Federal", desc: "Implantação de sistemas fotovoltaicos para reduzir custos e gerar conhecimento prático sobre energias renováveis.", arrecadado: 12640, meta: 20000, pct: 63, dias: 18, apoiadores: 42, img: "https://irp.cdn-website.com/ec21af5c/dms3rep/multi/opt/adlai-solar-1920w.jpg" },
+    { id: 2, titulo: "Filtro de Água Sustentável", categoria: "Meio Ambiente", cor: "#1265df", autor: "Rafaela Zucare", org: "Rafaela Zucare", desc: "Sistema de filtragem de água desenvolvido por estudantes para melhorar o acesso à água de qualidade.", arrecadado: 3200, meta: 5000, pct: 64, dias: 24, apoiadores: 26, img: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=80" },
+    { id: 3, titulo: "Robótica Sustentável", categoria: "Educação", cor: "#28a745", autor: "Carlos Oliveira", org: "Escola Maria Batista", desc: "Oficinas de robótica para alunos de ensino médio, estimulando criatividade, lógica e trabalho em equipe.", arrecadado: 7850, meta: 10000, pct: 78, dias: 12, apoiadores: 35, img: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=500&q=80" },
+    { id: 4, titulo: "Horta Inteligente na Escola", categoria: "Sustentabilidade", cor: "#17a2b8", autor: "Laura Costa", org: "Laura Costa", desc: "Criação de hortas escolares orgânicas para educação ambiental e promoção da alimentação saudável.", arrecadado: 2150, meta: 5000, pct: 43, dias: 30, apoiadores: 18, img: "https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&w=500&q=80" },
+    { id: 5, titulo: "Biblioteca Digital", categoria: "Educação", cor: "#28a745", autor: "Pedro Almeida", org: "Pedro Almeida", desc: "Acervo digital gratuito com livros e materiais de estudo para comunidades com pouco acesso à leitura.", arrecadado: 4300, meta: 8000, pct: 54, dias: 20, apoiadores: 31, img: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=500&q=80" },
+    { id: 6, titulo: "Costurando Sonhos", categoria: "Cultura", cor: "#e83e8c", autor: "Rafaela Nascimento", org: "Grupo Costura Viva", desc: "Oficinas de costura para jovens da comunidade, promovendo geração de renda, sustentabilidade e transformação social.", arrecadado: 1870, meta: 5000, pct: 37, dias: 27, apoiadores: 14, img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=500&q=80" },
+    { id: 7, titulo: "Esporte sem Barreiras", categoria: "Inclusão Social", cor: "#fd7e14", autor: "Rafael Morais", org: "Escola Pública Estadual", desc: "Aulas de esporte adaptado para inclusão social e desenvolvimento de jovens com deficiência.", arrecadado: 5620, meta: 8000, pct: 70, dias: 15, apoiadores: 29, img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80" },
+    { id: 8, titulo: "Plantando o Futuro", categoria: "Sustentabilidade", cor: "#17a2b8", autor: "José Roberto", org: "José Roberto", desc: "Plantio de árvores nativas em áreas degradadas, com participação de escolas e moradores locais.", arrecadado: 5000, meta: 5000, pct: 100, dias: 0, apoiadores: 45, img: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=500&q=80" },
+    { id: 9, titulo: "Conectando Saberes", categoria: "Tecnologia", cor: "#1265df", autor: "Lucas Martins", org: "Lucas Martins", desc: "Aulas de informática básica e programação para jovens e adultos da comunidade.", arrecadado: 2900, meta: 5000, pct: 58, dias: 22, apoiadores: 23, img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=80" },
+    { id: 10, titulo: "Verde no Bairro", categoria: "Meio Ambiente", cor: "#1265df", autor: "Ana Clara Souza", org: "Ana Clara Souza", desc: "Revitalização de praças e canteiros do bairro com plantio de mudas e mutirões de limpeza.", arrecadado: 2100, meta: 5000, pct: 42, dias: 28, apoiadores: 19, img: "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=500&q=80" },
+    { id: 11, titulo: "Aprender e Crescer", categoria: "Educação", cor: "#28a745", autor: "Beatriz Lima", org: "Beatriz Lima", desc: "Reforço escolar gratuito para crianças do ensino fundamental, com materiais e lanche incluídos.", arrecadado: 3600, meta: 5000, pct: 72, dias: 10, apoiadores: 34, img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=500&q=80" },
+    { id: 12, titulo: "Todos no Jogo", categoria: "Inclusão Social", cor: "#fd7e14", autor: "Gabriel Santos", org: "Gabriel Santos", desc: "Campeonatos esportivos inclusivos que reúnem jovens com e sem deficiência.", arrecadado: 1750, meta: 5000, pct: 35, dias: 32, apoiadores: 16, img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=500&q=80" },
+    { id: 13, titulo: "Biblioteca Digital para Todos", categoria: "Educação", cor: "#28a745", autor: "Mariane Araujo", org: "Escola Municipal Aurora", desc: "Criação de uma biblioteca digital acessível para estudantes de baixa renda, com acervo gratuito e computadores de apoio.", arrecadado: 6150, meta: 5000, pct: 100, dias: 0, apoiadores: 68, img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=500&q=80" },
+    { id: 14, titulo: "Mães Empreendedoras", categoria: "Inclusão Social", cor: "#fd7e14", autor: "Mariane Araujo", org: "Associação Mãos Unidas", desc: "Curso de empreendedorismo e microcrédito para mães que querem abrir o próprio negócio e gerar renda para a família.", arrecadado: 3400, meta: 8000, pct: 43, dias: 21, apoiadores: 22, img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=500&q=80" },
+    { id: 15, titulo: "Ciência na Praça", categoria: "Educação", cor: "#28a745", autor: "Mariane Araujo", org: "Coletivo Ciência Viva", desc: "Feira itinerante de experimentos científicos para crianças e jovens, realizada em praças e escolas públicas.", arrecadado: 1900, meta: 4000, pct: 48, dias: 9, apoiadores: 17, img: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=500&q=80" }
+];
+
+const detalhes = {
+    1: {
+        local: "São Paulo – SP",
+        nivel: "Ensino Técnico",
+        sobre: [
+            "Nosso objetivo é instalar painéis solares na escola para reduzir os custos com energia elétrica e o consumo de energia não renovável, ao mesmo tempo, criar um laboratório vivo para que os estudantes aprendam na prática sobre energia solar, eficiência energética e inovação.",
+            "A energia gerada será utilizada nas atividades da escola e parte dela abastecerá o laboratório de projetos dos alunos."
+        ],
+        destaques: [
+            ["fa-solar-panel", "Sustentabilidade", "Redução de impacto ambiental"],
+            ["fa-graduation-cap", "Educação na prática", "Alunos aprendendo com projetos reais"],
+            ["fa-coins", "Redução de custos", "Menos gastos com energia elétrica"]
+        ],
+        atualizacoes: [
+            ["Instalação dos primeiros painéis concluída!", "Hoje finalizamos a instalação dos primeiros módulos solares. Em breve, os alunos começarão a monitorar a geração de energia!", "Há 5 dias"],
+            ["Compra dos equipamentos", "Os inversores e as estruturas de fixação já foram adquiridos graças às primeiras doações.", "Há 2 semanas"]
+        ]
+    },
+    2: {
+        local: "Campinas – SP",
+        nivel: "Ensino Médio",
+        sobre: [
+            "Estudantes desenvolveram um filtro de baixo custo, feito com materiais reutilizáveis, capaz de purificar a água para consumo em comunidades com acesso limitado a água potável.",
+            "Com a campanha, vamos produzir os primeiros filtros, testá-los em campo e distribuí-los para famílias da região."
+        ],
+        destaques: [
+            ["fa-droplet", "Água de qualidade", "Acesso a água potável para famílias"],
+            ["fa-recycle", "Reaproveitamento", "Materiais reutilizados na fabricação"],
+            ["fa-users", "Comunidade", "Famílias atendidas diretamente"]
+        ],
+        atualizacoes: [
+            ["Protótipo aprovado nos testes", "O filtro passou nos testes de qualidade da água e está pronto para a produção em maior escala.", "Há 3 dias"],
+            ["Parceria com laboratório local", "Um laboratório da cidade vai analisar as amostras de água gratuitamente.", "Há 2 semanas"]
+        ]
+    },
+    3: {
+        local: "Santos – SP",
+        nivel: "Ensino Médio",
+        sobre: [
+            "Oficinas de robótica sustentável para alunos do ensino médio, usando sucata eletrônica e materiais reaproveitados para construir robôs e estimular criatividade, lógica e trabalho em equipe.",
+            "Os recursos serão usados na compra de kits, ferramentas e na formação de monitores para as turmas."
+        ],
+        destaques: [
+            ["fa-robot", "Tecnologia", "Introdução à robótica e programação"],
+            ["fa-recycle", "Sustentabilidade", "Reuso de componentes eletrônicos"],
+            ["fa-graduation-cap", "Educação na prática", "Aprendizado por projetos"]
+        ],
+        atualizacoes: [
+            ["Primeira turma formada", "Vinte alunos concluíram a primeira oficina e apresentaram seus robôs para a escola.", "Há 4 dias"],
+            ["Kits de robótica chegaram", "Recebemos os primeiros kits e as aulas começam na próxima semana.", "Há 3 semanas"]
+        ]
+    },
+    4: {
+        local: "Sorocaba – SP",
+        nivel: "Ensino Fundamental",
+        sobre: [
+            "Uma horta escolar com sensores de umidade e irrigação inteligente, cuidada pelos próprios alunos, para ensinar educação ambiental e incentivar a alimentação saudável.",
+            "A colheita será usada na merenda e o excedente será doado para famílias do bairro."
+        ],
+        destaques: [
+            ["fa-seedling", "Alimentação saudável", "Alimentos frescos na merenda"],
+            ["fa-leaf", "Educação ambiental", "Cuidado com o meio ambiente"],
+            ["fa-laptop-code", "Tecnologia", "Sensores e irrigação automática"]
+        ],
+        atualizacoes: [
+            ["Canteiros preparados", "Os alunos prepararam a terra e plantaram as primeiras mudas de alface e tomate.", "Há 6 dias"],
+            ["Sensores em teste", "Os primeiros sensores de umidade foram instalados em fase de testes.", "Há 3 semanas"]
+        ]
+    },
+    5: {
+        local: "Belo Horizonte – MG",
+        nivel: "Ensino Fundamental e Médio",
+        sobre: [
+            "Criação de uma biblioteca digital gratuita, com livros, apostilas e materiais de estudo acessíveis por celular e computador, voltada a comunidades com pouco acesso à leitura.",
+            "Os recursos serão usados em equipamentos de acesso, licenças de conteúdo e digitalização de acervo."
+        ],
+        destaques: [
+            ["fa-book-open", "Acesso à leitura", "Milhares de títulos gratuitos"],
+            ["fa-laptop-code", "Inclusão digital", "Acesso por celular e computador"],
+            ["fa-graduation-cap", "Apoio aos estudos", "Materiais para todas as idades"]
+        ],
+        atualizacoes: [
+            ["Acervo inicial publicado", "Mais de 300 títulos já estão disponíveis na versão de testes da biblioteca.", "Há 1 semana"],
+            ["Tablets adquiridos", "Compramos os primeiros tablets para uso nos pontos de acesso comunitários.", "Há 3 semanas"]
+        ]
+    },
+    6: {
+        local: "Guarulhos – SP",
+        nivel: "Jovens e adultos",
+        sobre: [
+            "Oficinas de costura para jovens da comunidade, ensinando um ofício, estimulando o reaproveitamento de tecidos e abrindo caminho para a geração de renda.",
+            "A arrecadação será usada na compra de máquinas de costura, tecidos e materiais para as turmas."
+        ],
+        destaques: [
+            ["fa-scissors", "Geração de renda", "Formação em um ofício"],
+            ["fa-recycle", "Sustentabilidade", "Reaproveitamento de tecidos"],
+            ["fa-users", "Comunidade", "Encontros e trocas entre as alunas"]
+        ],
+        atualizacoes: [
+            ["Primeiras máquinas doadas", "Recebemos três máquinas de costura doadas por apoiadores da campanha.", "Há 5 dias"],
+            ["Inscrições abertas", "Já são 25 inscritas para a primeira turma de costura.", "Há 2 semanas"]
+        ]
+    },
+    7: {
+        local: "Itaquaquecetuba – SP",
+        nivel: "Todas as idades",
+        sobre: [
+            "Aulas de esporte adaptado para crianças e jovens com deficiência, promovendo inclusão, saúde e convivência entre todos os estudantes.",
+            "Os recursos serão usados na compra de equipamentos adaptados e na contratação de profissionais especializados."
+        ],
+        destaques: [
+            ["fa-wheelchair", "Inclusão", "Esporte para todas as pessoas"],
+            ["fa-futbol", "Saúde", "Atividade física regular"],
+            ["fa-users", "Convivência", "Integração entre estudantes"]
+        ],
+        atualizacoes: [
+            ["Quadra adaptada", "A quadra da escola recebeu rampas e sinalização para facilitar o acesso.", "Há 4 dias"],
+            ["Equipe formada", "Dois professores de educação física adaptada se juntaram ao projeto.", "Há 2 semanas"]
+        ]
+    },
+    8: {
+        local: "Piracicaba – SP",
+        nivel: "Comunidade em geral",
+        sobre: [
+            "Plantio de árvores nativas em áreas degradadas, com a participação de escolas e moradores da região, para recuperar o solo e criar corredores verdes.",
+            "A meta foi atingida e as mudas já estão sendo plantadas. Obrigado a todos os apoiadores!"
+        ],
+        destaques: [
+            ["fa-tree", "Reflorestamento", "Árvores nativas plantadas"],
+            ["fa-leaf", "Biodiversidade", "Retorno da fauna e da flora locais"],
+            ["fa-users", "Participação", "Escolas e moradores envolvidos"]
+        ],
+        atualizacoes: [
+            ["Meta alcançada!", "Chegamos a 100% da meta e o plantio já está em andamento.", "Há 2 dias"],
+            ["Mutirão de plantio", "Mais de 60 voluntários participaram do primeiro mutirão.", "Há 2 semanas"]
+        ]
+    },
+    9: {
+        local: "Recife – PE",
+        nivel: "Jovens e adultos",
+        sobre: [
+            "Aulas de informática básica e programação para jovens e adultos da comunidade, criando oportunidades de estudo e de entrada no mercado de trabalho.",
+            "Os recursos serão usados em computadores, internet e material didático."
+        ],
+        destaques: [
+            ["fa-laptop-code", "Tecnologia", "Informática e programação"],
+            ["fa-graduation-cap", "Capacitação", "Formação para o mercado"],
+            ["fa-users", "Comunidade", "Turmas abertas ao bairro"]
+        ],
+        atualizacoes: [
+            ["Laboratório montado", "Os primeiros dez computadores já estão instalados no laboratório.", "Há 1 semana"],
+            ["Turma piloto", "A primeira turma começa no próximo mês, com 30 vagas.", "Há 3 semanas"]
+        ]
+    },
+    10: {
+        local: "Curitiba – PR",
+        nivel: "Comunidade em geral",
+        sobre: [
+            "Revitalização de praças e canteiros do bairro com plantio de mudas, mutirões de limpeza e ações de educação ambiental com os moradores.",
+            "A arrecadação cobre mudas, ferramentas e materiais para os mutirões mensais."
+        ],
+        destaques: [
+            ["fa-leaf", "Áreas verdes", "Mais espaços verdes no bairro"],
+            ["fa-recycle", "Limpeza urbana", "Mutirões regulares de limpeza"],
+            ["fa-users", "Vizinhança", "Moradores cuidando do bairro"]
+        ],
+        atualizacoes: [
+            ["Primeiro mutirão", "Vinte moradores participaram da limpeza da praça central.", "Há 1 semana"],
+            ["Mudas garantidas", "Um viveiro parceiro doou 50 mudas para o início do projeto.", "Há 3 semanas"]
+        ]
+    },
+    11: {
+        local: "Fortaleza – CE",
+        nivel: "Ensino Fundamental",
+        sobre: [
+            "Reforço escolar gratuito para crianças do ensino fundamental, com acompanhamento de monitores, materiais didáticos e lanche em todos os encontros.",
+            "Com a campanha, ampliamos o número de vagas e garantimos material para todos os alunos."
+        ],
+        destaques: [
+            ["fa-chalkboard-user", "Reforço escolar", "Aulas de leitura e matemática"],
+            ["fa-book-open", "Material didático", "Livros e cadernos para todos"],
+            ["fa-hand-holding-heart", "Acolhimento", "Lanche e acompanhamento"]
+        ],
+        atualizacoes: [
+            ["Novas vagas abertas", "Abrimos mais 20 vagas para o segundo semestre.", "Há 3 dias"],
+            ["Voluntários confirmados", "Dez novos monitores se inscreveram para ajudar nas aulas.", "Há 2 semanas"]
+        ]
+    },
+    12: {
+        local: "Salvador – BA",
+        nivel: "Jovens",
+        sobre: [
+            "Campeonatos esportivos inclusivos que reúnem jovens com e sem deficiência, valorizando o trabalho em equipe e o respeito às diferenças.",
+            "Os recursos serão usados em uniformes, arbitragem, transporte e premiação simbólica."
+        ],
+        destaques: [
+            ["fa-futbol", "Esporte", "Campeonatos para todos"],
+            ["fa-wheelchair", "Inclusão", "Regras adaptadas"],
+            ["fa-users", "Equipes mistas", "Convivência e respeito"]
+        ],
+        atualizacoes: [
+            ["Times inscritos", "Já temos oito equipes inscritas para a primeira edição.", "Há 4 dias"],
+            ["Uniformes aprovados", "O desenho dos uniformes foi escolhido pelos próprios jogadores.", "Há 2 semanas"]
+        ]
+    },
+    13: {
+        local: "Osasco – SP",
+        nivel: "Ensino Fundamental e Médio",
+        sobre: [
+            "Uma biblioteca digital gratuita, com livros, apostilas e materiais de estudo, acompanhada de um espaço com computadores para estudantes que não têm acesso à internet em casa.",
+            "A meta foi superada! Os recursos extras serão usados para ampliar o acervo e manter o laboratório funcionando."
+        ],
+        destaques: [
+            ["fa-book-open", "Acervo gratuito", "Milhares de títulos disponíveis"],
+            ["fa-laptop-code", "Inclusão digital", "Computadores para estudo"],
+            ["fa-graduation-cap", "Apoio escolar", "Materiais para todas as idades"]
+        ],
+        atualizacoes: [
+            ["Meta superada!", "Chegamos a 123% da meta graças aos 68 apoiadores. Obrigado a todos!", "Há 2 meses"],
+            ["Laboratório inaugurado", "Os dez primeiros computadores já estão em uso pelos alunos.", "Há 3 meses"]
+        ]
+    },
+    14: {
+        local: "São Bernardo do Campo – SP",
+        nivel: "Adultos",
+        sobre: [
+            "Curso gratuito de empreendedorismo, finanças básicas e vendas para mães que desejam abrir o próprio negócio, com acompanhamento e acesso a microcrédito.",
+            "A arrecadação será usada em material didático, mentoria e no fundo de microcrédito inicial."
+        ],
+        destaques: [
+            ["fa-hand-holding-heart", "Geração de renda", "Autonomia financeira para as famílias"],
+            ["fa-chalkboard-user", "Capacitação", "Aulas e mentoria"],
+            ["fa-users", "Rede de apoio", "Encontros entre empreendedoras"]
+        ],
+        atualizacoes: [
+            ["Primeira turma completa", "As 30 vagas da primeira turma foram preenchidas em uma semana.", "Há 4 dias"],
+            ["Mentoras confirmadas", "Cinco empreendedoras locais vão acompanhar as alunas.", "Há 2 semanas"]
+        ]
+    },
+    15: {
+        local: "Mogi das Cruzes – SP",
+        nivel: "Ensino Fundamental",
+        sobre: [
+            "Feira itinerante de ciências com experimentos práticos, oficinas e demonstrações, levada a praças e escolas públicas para despertar a curiosidade de crianças e jovens.",
+            "Os recursos serão usados na compra de materiais de laboratório, na estrutura das barracas e no transporte."
+        ],
+        destaques: [
+            ["fa-laptop-code", "Ciência na prática", "Experimentos ao vivo"],
+            ["fa-graduation-cap", "Educação", "Aprender de forma divertida"],
+            ["fa-users", "Comunidade", "Eventos abertos ao público"]
+        ],
+        atualizacoes: [
+            ["Primeira feira marcada", "A estreia será em uma praça central, com 12 experimentos diferentes.", "Há 3 dias"],
+            ["Kit de química chegou", "Recebemos os materiais para as oficinas de reações químicas.", "Há 1 semana"]
+        ]
+    }
+};
+
+projetos.forEach(p => Object.assign(p, detalhes[p.id] || {}));
+
+const MEUS_PROJETOS = [1, 3, 8, 13, 14, 15];
+
+const CRIADO_EM = {
+    1: "2026-07-20",
+    3: "2026-07-10",
+    8: "2026-05-06",
+    13: "2026-03-12",
+    14: "2026-08-25",
+    15: "2026-09-02"
+};
+
+const CONCLUIDO_EM = {
+    8: "2026-05-30",
+    13: "2026-08-18"
+};
+
+const MINHAS_DOACOES = [
+    { id: 1, valor: 50, data: "2026-08-20" },
+    { id: 2, valor: 80, data: "2026-08-15" },
+    { id: 3, valor: 40, data: "2026-08-10" },
+    { id: 13, valor: 30, data: "2026-07-25" },
+    { id: 4, valor: 50, data: "2026-07-18" },
+    { id: 6, valor: 120, data: "2026-07-05" },
+    { id: 9, valor: 150, data: "2026-06-20" },
+    { id: 10, valor: 100, data: "2026-06-02" }
+];
+
+function lerDoacoesSalvas() {
+    try {
+        return JSON.parse(localStorage.getItem("eloDoacoes")) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function registrarDoacao(doacao) {
+    const lista = lerDoacoesSalvas();
+
+    if (doacao.codigo && lista.some(x => x.codigo === doacao.codigo)) {
+        return;
+    }
+
+    lista.push(doacao);
+
+    try {
+        localStorage.setItem("eloDoacoes", JSON.stringify(lista));
+    } catch (e) {
+        // Ignora falhas de armazenamento local.
+    }
+}
+
+function todasAsDoacoes() {
+    return [...MINHAS_DOACOES, ...lerDoacoesSalvas()];
+}
