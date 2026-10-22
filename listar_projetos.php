@@ -17,13 +17,15 @@ try {
                 p.valor_arrecadado,
                 p.data_inicio,
                 p.data_fim,
-                p.local,
+                p.criado_em,
+                p.status,
+                p.`local`,
                 p.instituicao,
                 u.nome AS autor
             FROM projetos p
             LEFT JOIN usuarios u ON u.id = p.usuario_id
             WHERE p.status = 'ativa'
-            ORDER BY p.criado_em DESC";
+            ORDER BY p.criado_em DESC, p.id DESC";
 
     $consulta = $pdo->query($sql);
     $resultado = $consulta->fetchAll();
@@ -31,6 +33,7 @@ try {
     $cores = [
         'Tecnologia' => '#1265df',
         'Meio Ambiente' => '#1265df',
+        'Meio ambiente' => '#1265df',
         'Educação' => '#28a745',
         'Sustentabilidade' => '#17a2b8',
         'Inclusão Social' => '#fd7e14',
@@ -41,6 +44,7 @@ try {
     ];
 
     $projetos = [];
+    $hoje = new DateTimeImmutable('today');
 
     foreach ($resultado as $p) {
         $meta = (float) $p['meta_valor'];
@@ -50,12 +54,16 @@ try {
             ? min(100, (int) round(($arrecadado / $meta) * 100))
             : 0;
 
-        $dataFim = new DateTime($p['data_fim']);
-        $hoje = new DateTime('today');
+        $dias = 0;
 
-        $dias = $hoje > $dataFim
-            ? 0
-            : (int) $hoje->diff($dataFim)->days;
+        if (!empty($p['data_fim'])) {
+            $dataFim = new DateTimeImmutable($p['data_fim']);
+
+            $dias = max(
+                0,
+                (int) $hoje->diff($dataFim)->format('%r%a')
+            );
+        }
 
         $categoria = $p['categoria'];
 
@@ -66,20 +74,28 @@ try {
             'categoria' => $categoria,
             'cor' => $cores[$categoria] ?? '#2157AE',
             'autor' => $p['autor'] ?? 'Criador do projeto',
-            'org' => $p['instituicao'] ?: ($p['local'] ?: ($p['autor'] ?? 'Instituição')),
+            'org' => $p['instituicao']
+                ?: ($p['local'] ?: ($p['autor'] ?? 'Instituição')),
+            'local' => $p['local'] ?? '',
             'desc' => $p['descricao'],
             'arrecadado' => $arrecadado,
             'meta' => $meta,
             'pct' => $pct,
             'dias' => $dias,
             'apoiadores' => 0,
-            'img' => $p['imagem']
+            'img' => $p['imagem'] ?? '',
+            'criado_em' => $p['criado_em'],
+            'data_inicio' => $p['data_inicio'],
+            'data_fim' => $p['data_fim'],
+            'status' => $p['status']
         ];
     }
 
     echo json_encode(
         $projetos,
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        JSON_UNESCAPED_UNICODE |
+        JSON_UNESCAPED_SLASHES |
+        JSON_INVALID_UTF8_SUBSTITUTE
     );
 
 } catch (Throwable $e) {
