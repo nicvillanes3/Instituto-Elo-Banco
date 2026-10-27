@@ -8,11 +8,15 @@ $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$id || $id < 1) {
     http_response_code(400);
-    echo json_encode(['erro' => 'ID de projeto inválido.']);
+    echo json_encode(
+        ['erro' => 'ID de projeto inválido.'],
+        JSON_UNESCAPED_UNICODE
+    );
     exit;
 }
 
 try {
+    // Busca os dados da campanha.
     $sql = "SELECT
                 id,
                 titulo,
@@ -32,18 +36,28 @@ try {
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);
+
     $p = $stmt->fetch();
 
     if (!$p) {
         http_response_code(404);
-        echo json_encode(['erro' => 'Projeto não encontrado.']);
+        echo json_encode(
+            ['erro' => 'Projeto não encontrado.'],
+            JSON_UNESCAPED_UNICODE
+        );
         exit;
     }
 
+    // Calcula os dias restantes.
     $hoje = new DateTimeImmutable('today');
     $fim = new DateTimeImmutable($p['data_fim']);
-    $dias = max(0, (int) $hoje->diff($fim)->format('%r%a'));
 
+    $dias = max(
+        0,
+        (int) $hoje->diff($fim)->format('%r%a')
+    );
+
+    // Cores de cada categoria.
     $cores = [
         'Educação' => '#075BE8',
         'Tecnologia' => '#6C63FF',
@@ -56,6 +70,41 @@ try {
     $meta = (float) $p['meta_valor'];
     $arrecadado = (float) $p['valor_arrecadado'];
 
+    $porcentagem = $meta > 0
+        ? min(100, (int) round(($arrecadado / $meta) * 100))
+        : 0;
+
+    // Busca as atualizações reais publicadas para esta campanha.
+    $sqlAtualizacoes = "SELECT
+                            id,
+                            titulo,
+                            conteudo,
+                            imagem,
+                            criado_em
+                        FROM atualizacoes_projeto
+                        WHERE projeto_id = :projeto_id
+                        ORDER BY criado_em DESC, id DESC";
+
+    $stmtAtualizacoes = $pdo->prepare($sqlAtualizacoes);
+    $stmtAtualizacoes->execute([':projeto_id' => $id]);
+
+    $atualizacoes = [];
+
+    foreach ($stmtAtualizacoes->fetchAll() as $item) {
+        $atualizacoes[] = [
+            'id' => (int) $item['id'],
+            'titulo' => $item['titulo'],
+            'texto' => $item['conteudo'],
+            'descricao' => $item['conteudo'],
+            'imagem' => $item['imagem'],
+            'data' => date(
+                'd/m/Y H:i',
+                strtotime($item['criado_em'])
+            )
+        ];
+    }
+
+    // Retorna os dados no formato esperado pelo projeto.js.
     echo json_encode([
         'id' => (int) $p['id'],
         'titulo' => $p['titulo'],
@@ -66,18 +115,22 @@ try {
         'nivel' => $p['instituicao'] ?: 'Instituição de ensino',
         'meta' => $meta,
         'arrecadado' => $arrecadado,
-        'pct' => $meta > 0
-            ? min(100, (int) round($arrecadado / $meta * 100))
-            : 0,
+        'pct' => $porcentagem,
         'dias' => $dias,
         'apoiadores' => 0,
         'cor' => $cores[$p['categoria']] ?? '#075BE8',
         'sobre' => [$p['descricao']],
         'destaques' => [],
-        'atualizacoes' => []
+        'atualizacoes' => $atualizacoes
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 } catch (Throwable $e) {
+    error_log($e->getMessage());
+
     http_response_code(500);
-    echo json_encode(['erro' => 'Não foi possível consultar o projeto.']);
+
+    echo json_encode(
+        ['erro' => 'Não foi possível consultar o projeto.'],
+        JSON_UNESCAPED_UNICODE
+    );
 }

@@ -1,47 +1,21 @@
-/* =====================================================================
-   auth.js — login, proteção de páginas e navbar automática
 
-   COMO USAR: em TODAS as páginas, dentro do <head>, coloque UMA linha:
-
-       <script src="auth.js"></script>
-
-   O que ele faz sozinho:
-   1. Páginas privadas (lista abaixo) só abrem para quem fez login;
-      quem não fez é enviado para login.html e volta para a página
-      que queria assim que entrar.
-   2. A navbar certa (visitante ou logado) é colocada no lugar de
-      <nav class="navbar"> ou de <div id="navbar"></div>.
-      Páginas sem nenhum dos dois (ex.: telas de pagamento) não recebem navbar.
-
-   No login/cadastro, depois de validar os dados:
-
-       Auth.entrar({ nome: "Mariane Araujo", email: "mariane@email.com" });
-       Auth.irParaDestino();   // volta para a página que a pessoa queria
-
-   O nome da primeira página e o da página Explorar ficam
-   nas constantes PAGINA_INICIAL e PAGINA_EXPLORAR, logo abaixo.
-
-   Para sair:  Auth.sair();  (a página sair.html já faz isso)
-
-   ATENÇÃO: isto protege só o que o usuário VÊ no navegador. Quem sabe
-   mexer no navegador consegue burlar. Para proteger dados de verdade,
-   a verificação precisa acontecer também no servidor.
-   ===================================================================== */
 (function () {
+    "use strict";
 
-    // ===== Configuração =====
+    // =====================================================
+    // CONFIGURAÇÕES
+    // =====================================================
+
     const CHAVE_SESSAO = "eloSessao";
     const PAGINA_LOGIN = "login.html";
-    const PAGINA_INICIAL = "index.html";      // primeira página do site (logo, depois do login e do logout)
-    const PAGINA_EXPLORAR = "explorar.html";   // links "Explorar" e "Projetos" da navbar
-    const PAGINA_COMO_FUNCIONA = PAGINA_INICIAL + "#como-funciona";   // seção "Como funciona" da página inicial
+    const PAGINA_INICIAL = "index.html";
+    const PAGINA_EXPLORAR = "explorar.html";
     const PAGINA_CRIAR_CAMPANHA = "criarCampanha1.html";
 
-    // Páginas que exigem login (nomes em minúsculas)
     const PAGINAS_PRIVADAS = [
         "perfil.html",
         "criador.html",
-        "projetos.html",        // "Projetos criados" (menu lateral)
+        "projetos.html",
         "doacoes.html",
         "favoritos.html",
         "notificacoes.html",
@@ -54,198 +28,428 @@
         "doacaofi.html"
     ];
 
-    // Páginas que não fazem sentido para quem já está logado
-    const PAGINAS_SO_VISITANTES = ["login.html", "cadastro.html"];
+    const PAGINAS_VISITANTES = [
+        "login.html",
+        "cadastro.html",
+        "criarconta.html",
+        "esquecisenha.html"
+    ];
 
-    // ===== Sessão =====
+    // =====================================================
+    // SESSÃO DO USUÁRIO
+    // =====================================================
+
     function lerSessao() {
-        try { return JSON.parse(localStorage.getItem(CHAVE_SESSAO)); } catch (e) { return null; }
+        try {
+            const dados = localStorage.getItem(CHAVE_SESSAO);
+
+            if (!dados) {
+                return null;
+            }
+
+            const usuario = JSON.parse(dados);
+
+            return usuario && typeof usuario === "object"
+                ? usuario
+                : null;
+
+        } catch (erro) {
+            console.error("Erro ao ler a sessão:", erro);
+            return null;
+        }
     }
 
     const Auth = {
+
+        // Verifica se existe um usuário conectado
         estaLogado() {
-            const s = lerSessao();
-            return Boolean(s && (s.email || s.nome));
+            const usuario = lerSessao();
+
+            return Boolean(
+                usuario &&
+                (usuario.email || usuario.nome)
+            );
         },
 
+        // Retorna os dados do usuário conectado
         usuario() {
             return lerSessao();
         },
 
+        // Salva os dados do usuário na sessão
         entrar(usuario) {
+            if (!usuario || typeof usuario !== "object") {
+                console.error("Dados de usuário inválidos.");
+                return false;
+            }
+
             try {
-                localStorage.setItem(CHAVE_SESSAO, JSON.stringify(Object.assign({}, usuario, { entrouEm: Date.now() })));
-            } catch (e) { /* armazenamento indisponível */ }
+                const sessaoAnterior = lerSessao() || {};
+
+                localStorage.setItem(
+                    CHAVE_SESSAO,
+                    JSON.stringify({
+                        ...sessaoAnterior,
+                        ...usuario,
+                        entrouEm: Date.now()
+                    })
+                );
+
+                return true;
+
+            } catch (erro) {
+                console.error("Erro ao salvar a sessão:", erro);
+                return false;
+            }
         },
 
-        sair() {
-            try { localStorage.removeItem(CHAVE_SESSAO); } catch (e) { /* ignora */ }
-        },
+        // Encerra a sessão e volta para a página inicial
+       sair() {
+    localStorage.removeItem(CHAVE_SESSAO);
+    window.location.replace("index.html");
+},
 
-        // Página para onde voltar depois do login (?voltar=perfil.html). Só aceita arquivos do próprio site.
+        // Define para onde o usuário deve ir após o login
         destino() {
-            const voltar = new URLSearchParams(window.location.search).get("voltar");
-            return voltar && /^[\w\-]+\.html(\?[\w=&.%\-]*)?$/i.test(voltar) ? voltar : PAGINA_INICIAL;
+            const voltar = new URLSearchParams(
+                window.location.search
+            ).get("voltar");
+
+            if (
+                voltar &&
+                /^[\w-]+\.html(?:\?[\w=&.%\-]*)?$/i.test(voltar)
+            ) {
+                return voltar;
+            }
+
+            return PAGINA_INICIAL;
         },
 
+        // Redireciona para o destino definido
         irParaDestino() {
             window.location.href = this.destino();
         }
     };
 
+    // Páginas disponíveis para outros scripts
     Auth.paginaInicial = PAGINA_INICIAL;
     Auth.paginaExplorar = PAGINA_EXPLORAR;
 
+    // Disponibiliza o objeto Auth globalmente
     window.Auth = Auth;
 
-    // ===== Página atual =====
-    let arquivo = window.location.pathname.split("/").pop() || PAGINA_INICIAL;
-    if (!/\.html$/i.test(arquivo)) arquivo += ".html";
-    const arquivoMinusculo = arquivo.toLowerCase();
+    // =====================================================
+    // IDENTIFICAR A PÁGINA ATUAL
+    // =====================================================
 
-    // ===== Proteção de páginas =====
-    function verificarAcesso() {
-        if (PAGINAS_PRIVADAS.includes(arquivoMinusculo) && !Auth.estaLogado()) {
-            document.documentElement.style.display = "none";   // evita mostrar a página por um instante
-            window.location.replace(PAGINA_LOGIN + "?voltar=" + encodeURIComponent(arquivo + window.location.search));
-            return;
-        }
+    function obterNomePagina() {
+        const caminho = window.location.pathname;
+        const partes = caminho.split("/");
 
-        if (PAGINAS_SO_VISITANTES.includes(arquivoMinusculo) && Auth.estaLogado()) {
-            window.location.replace(PAGINA_INICIAL);
-        }
+        return (partes.pop() || PAGINA_INICIAL).toLowerCase();
     }
 
-    verificarAcesso();
+    // =====================================================
+    // PROTEÇÃO DE PÁGINAS
+    // =====================================================
 
-    // ===== Navbar automática =====
+    function verificarAcesso() {
+        const paginaAtual = obterNomePagina();
+
+        // Login, cadastro e recuperação são páginas públicas
+        if (PAGINAS_VISITANTES.includes(paginaAtual)) {
+            return true;
+        }
+
+        const paginasPrivadas = PAGINAS_PRIVADAS.map(
+            pagina => pagina.toLowerCase()
+        );
+
+        // Redireciona visitantes que tentam abrir páginas privadas
+        if (
+            paginasPrivadas.includes(paginaAtual) &&
+            !Auth.estaLogado()
+        ) {
+            const destino =
+                window.location.pathname.split("/").pop() +
+                window.location.search;
+
+            window.location.replace(
+                PAGINA_LOGIN +
+                "?voltar=" +
+                encodeURIComponent(destino)
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    // =====================================================
+    // HTML DA NAVBAR
+    // =====================================================
+
     function htmlNavbar(logado) {
-        const entrar = logado ? "" : '<li><a href="login.html">Entrar</a></li>';
-        const perfil = logado
-            ? `<li>
-                   <div class="meuPerfil">
-                       <a href="perfil.html">Perfil</a>
-                       <span class="material-symbols-outlined">account_circle</span>
-                   </div>
-               </li>`
+
+        const linkEntrar = !logado
+            ? `
+                <li>
+                    <a href="login.html">Entrar</a>
+                </li>
+            `
+            : "";
+
+        const linkPerfil = logado
+            ? `
+                <li class="itemPerfil">
+                    <a href="perfil.html" id="linkPerfil">
+                        Perfil
+                    </a>
+                </li>
+
+                <li class="itemIconePerfil">
+                    <a
+                        href="perfil.html"
+                        class="iconePerfil"
+                        aria-label="Abrir perfil"
+                    >
+                        <span class="material-symbols-outlined">
+                            account_circle
+                        </span>
+                    </a>
+                </li>
+            `
             : "";
 
         return `
-        <div class="nav-logo">
-            <a href="${PAGINA_INICIAL}">
-                <img src="logoElo.jpeg" alt="Instituto Elo Logo">
-            </a>
-        </div>
-        <ul class="nav-links">
-            <li><a href="${PAGINA_EXPLORAR}">Explorar</a></li>
-            <li><a href="${PAGINA_EXPLORAR}">Projetos</a></li>
-            <li><a href="${PAGINA_COMO_FUNCIONA}">Como funciona</a></li>
-            <li><a href="sobre.html">Sobre nós</a></li>
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="logoElo.jpeg" alt="Instituto Elo">
+                </a>
+            </div>
 
-            <li>
-                <div class="search-box">
-                    <input type="text" placeholder="Buscar projetos">
-                    <button type="button">
-                        <span class="material-symbols-outlined">search</span>
-                    </button>
-                </div>
-            </li>
+            <ul class="nav-links">
+                <li>
+                    <a href="explorar.html">Explorar</a>
+                </li>
 
-            ${entrar}
+                <li>
+                    <a href="explorar.html">Projetos</a>
+                </li>
 
-            <li>
-                <input type="button" value="Criar Campanha" id="botaoCampanha" onclick="window.location.href='${PAGINA_CRIAR_CAMPANHA}'">
-            </li>
+                <li>
+                    <a href="index.html#como-funciona">
+                        Como funciona
+                    </a>
+                </li>
 
-            ${perfil}
-        </ul>`;
+                <li>
+                    <a href="sobre.html">Sobre nós</a>
+                </li>
+
+                <li>
+                    <div class="search-box">
+                        <input
+                            type="text"
+                            id="buscaNavbar"
+                            placeholder="Buscar projetos"
+                            aria-label="Buscar projetos"
+                        >
+
+                        <button
+                            type="button"
+                            id="botaoBuscaNavbar"
+                            aria-label="Pesquisar"
+                        >
+                            <span class="material-symbols-outlined">
+                                search
+                            </span>
+                        </button>
+                    </div>
+                </li>
+
+                ${linkEntrar}
+
+                <li>
+                    <input
+                        type="button"
+                        value="Criar Campanha"
+                        id="botaoCampanha"
+                    >
+                </li>
+
+                ${linkPerfil}
+            </ul>
+        `;
     }
 
-    function garantirRecursos() {
-        // Ícones (Material Symbols) usados pela navbar: "search" e "account_circle".
-        // Se a página já carrega a fonte só com uma lista de ícones (icon_names=...) que não
-        // inclui account_circle, carrega a fonte completa também.
-        const fontes = Array.from(document.querySelectorAll('link[href*="Material+Symbols"]'));
-        const atende = fontes.some(l => !l.href.includes("icon_names") || l.href.includes("account_circle"));
+    // =====================================================
+    // BUSCA DA NAVBAR
+    // =====================================================
 
-        if (!atende) {
-            const fonte = document.createElement("link");
-            fonte.rel = "stylesheet";
-            fonte.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined";
-            document.head.appendChild(fonte);
-        }
-
-        // Estilo da navbar
-        if (!document.querySelector('link[href*="index.css"]')) {
-            const css = document.createElement("link");
-            css.rel = "stylesheet";
-            css.href = "index.css";
-            document.head.appendChild(css);
-        }
-    }
-
-    function renderizarNavbar() {
-        const marcador = document.getElementById("navbar") || document.querySelector("nav.navbar");
-        if (!marcador) return;   // página sem navbar (ex.: pagamento): não adiciona
-
-        garantirRecursos();
-
-        const nav = document.createElement("nav");
-        nav.className = "navbar";
-        nav.id = "navbar";
-        nav.innerHTML = htmlNavbar(Auth.estaLogado());
-        marcador.replaceWith(nav);
-
-        // Se sobrou outra navbar fixa na página, remove (evita navbar duplicada)
-        document.querySelectorAll("nav.navbar").forEach(outra => {
-            if (outra !== nav) outra.remove();
-        });
-
-        ativarBusca(nav);
-    }
-
-    // Busca da navbar: Enter ou clique na lupa abre explorar.html?busca=termo
     function ativarBusca(nav) {
-        const campo = nav.querySelector(".search-box input");
-        const botao = nav.querySelector(".search-box button");
-        if (!campo || !botao) return;
+        const campo = nav.querySelector("#buscaNavbar");
+        const botao = nav.querySelector("#botaoBuscaNavbar");
 
-        // Mostra no campo o termo já pesquisado
-        const atual = new URLSearchParams(window.location.search).get("busca");
-        if (atual) campo.value = atual;
+        if (!campo || !botao) {
+            return;
+        }
 
-        function buscar() {
+        const parametros = new URLSearchParams(
+            window.location.search
+        );
+
+        campo.value = parametros.get("busca") || "";
+
+        function realizarBusca() {
             const termo = campo.value.trim();
+
             if (!termo) {
                 campo.focus();
                 return;
             }
-            window.location.href = PAGINA_EXPLORAR + "?busca=" + encodeURIComponent(termo);
+
+            window.location.href =
+                PAGINA_EXPLORAR +
+                "?busca=" +
+                encodeURIComponent(termo);
         }
 
-        botao.addEventListener("click", buscar);
-        campo.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                buscar();
+        botao.addEventListener("click", realizarBusca);
+
+        campo.addEventListener("keydown", function (evento) {
+            if (evento.key === "Enter") {
+                evento.preventDefault();
+                realizarBusca();
             }
         });
     }
 
+    // =====================================================
+    // BOTÃO CRIAR CAMPANHA
+    // =====================================================
+
+    function ativarBotaoCampanha(nav) {
+        const botao = nav.querySelector("#botaoCampanha");
+
+        if (!botao) {
+            return;
+        }
+
+        botao.addEventListener("click", function () {
+
+            if (!Auth.estaLogado()) {
+                window.location.href =
+                    PAGINA_LOGIN +
+                    "?voltar=" +
+                    encodeURIComponent(PAGINA_CRIAR_CAMPANHA);
+
+                return;
+            }
+
+            window.location.href = PAGINA_CRIAR_CAMPANHA;
+        });
+    }
+
+    // =====================================================
+    // RENDERIZAR NAVBAR
+    // =====================================================
+
+    function renderizarNavbar() {
+        const marcador =
+            document.getElementById("navbar") ||
+            document.querySelector("nav.navbar");
+
+        if (!marcador) {
+            return;
+        }
+
+        // Evita renderizar a mesma navbar novamente
+        if (marcador.dataset.authNavbar === "true") {
+            return;
+        }
+
+        const nav = document.createElement("nav");
+
+        nav.className = "navbar";
+        nav.id = "navbar";
+        nav.dataset.authNavbar = "true";
+
+        const paginaAtual = obterNomePagina();
+
+        // Nas páginas de visitante, sempre mostra "Entrar"
+        const estaNaPaginaVisitante =
+            PAGINAS_VISITANTES.includes(paginaAtual);
+
+        nav.innerHTML = htmlNavbar(
+            estaNaPaginaVisitante ? false : Auth.estaLogado()
+        );
+
+        marcador.replaceWith(nav);
+
+        ativarBusca(nav);
+        ativarBotaoCampanha(nav);
+    }
+
+    // =====================================================
+    // INICIALIZAÇÃO
+    // =====================================================
+
     function iniciar() {
+        verificarAcesso();
         renderizarNavbar();
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", iniciar);
+        document.addEventListener(
+            "DOMContentLoaded",
+            iniciar,
+            { once: true }
+        );
     } else {
         iniciar();
     }
 
-    // Login ou logout em outra aba: atualiza esta aba também
-    window.addEventListener("storage", function (e) {
-        if (e.key !== CHAVE_SESSAO) return;
+    // =====================================================
+    // ATUALIZAR NAVBAR QUANDO A SESSÃO MUDAR
+    // EM OUTRA ABA DO NAVEGADOR
+    // =====================================================
+
+    window.addEventListener("storage", function (evento) {
+
+        if (evento.key !== CHAVE_SESSAO) {
+            return;
+        }
+
+        const paginaAtual = obterNomePagina();
+
+        if (PAGINAS_VISITANTES.includes(paginaAtual)) {
+            return;
+        }
+
         verificarAcesso();
-        renderizarNavbar();
+
+        const navAtual =
+            document.getElementById("navbar") ||
+            document.querySelector("nav.navbar");
+
+        if (!navAtual) {
+            return;
+        }
+
+        const nav = document.createElement("nav");
+
+        nav.className = "navbar";
+        nav.id = "navbar";
+        nav.dataset.authNavbar = "true";
+
+        nav.innerHTML = htmlNavbar(Auth.estaLogado());
+
+        navAtual.replaceWith(nav);
+
+        ativarBusca(nav);
+        ativarBotaoCampanha(nav);
     });
+
 })();

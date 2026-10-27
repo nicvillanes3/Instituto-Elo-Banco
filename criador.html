@@ -1,0 +1,548 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Painel do criador | Instituto Elo</title>
+
+    <link rel="stylesheet" href="criador.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="menuLateral.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+
+    <script src="auth.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="index.html">
+                <img src="logoElo.jpeg" alt="Instituto Elo">
+            </a>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="index.html">Explorar</a></li>
+            <li><a href="projetos.html">Projetos</a></li>
+            <li><a href="comoFunciona.html">Como funciona</a></li>
+            <li><a href="sobre.html">Sobre nós</a></li>
+
+            <li>
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="buscaProjetos"
+                        placeholder="Buscar projetos"
+                        aria-label="Buscar projetos">
+
+                    <button type="button" id="botaoBuscar"
+                        aria-label="Buscar">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+                </div>
+            </li>
+
+            <li>
+                <a href="login.html" id="linkConta">Entrar</a>
+            </li>
+
+            <li>
+                <input
+                    type="button"
+                    value="Criar Campanha"
+                    id="botaoCampanha"
+                    onclick="window.location.href='criarCampanha1.html'">
+            </li>
+        </ul>
+    </nav>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <div class="layout-principal">
+
+        <!-- MENU LATERAL -->
+        <aside class="area-lateral">
+
+            <div class="barra-lateral">
+
+                <a href="perfil.html">
+                    <i class="fa-regular fa-user"></i>
+                    Meu perfil
+                </a>
+
+                <a href="criador.html" class="active">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Painel do criador
+                </a>
+
+                <a href="projetos.html">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    Projetos criados
+                </a>
+
+                <a href="doacoes.html">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                    Minhas doações
+                </a>
+
+                <a href="favoritos.html">
+                    <i class="fa-regular fa-heart"></i>
+                    Favoritos
+                </a>
+
+                <a href="notificacao.html">
+                    <i class="fa-regular fa-bell"></i>
+                    Notificações
+                </a>
+
+                <a href="configuracoes.html">
+                    <i class="fa-solid fa-gear"></i>
+                    Configurações
+                </a>
+
+                <a href="logout.html" id="botaoSair">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Sair
+                </a>
+
+            </div>
+
+            <div class="card-destaque">
+                <i class="fa-solid fa-chart-column" id="card-icon"></i>
+
+                <p id="card-text">
+                    Dicas para sua campanha decolar
+                </p>
+            </div>
+
+        </aside>
+
+        <!-- CONTEÚDO DO PAINEL -->
+        <main class="conteudo-principal painel">
+
+            <!-- CABEÇALHO -->
+            <header class="painel-topo">
+                <div>
+                    <h1>
+                        Olá,
+                        <span id="nomeCriador">Carregando...</span>!
+                        <span class="aceno">👋</span>
+                    </h1>
+
+                    <p>
+                        Aqui está o resumo dos seus projetos e do desempenho
+                        das suas campanhas.
+                    </p>
+                </div>
+
+                <a href="perfil.html" class="btn-perfil">
+                    <i class="fa-regular fa-user"></i>
+                    Ver meu perfil
+                </a>
+            </header>
+
+            <p id="aviso" class="aviso" role="status" hidden></p>
+
+            <!-- RESUMO -->
+            <section class="resumo">
+
+                <article class="resumo-card">
+                    <div class="resumo-texto">
+                        <span class="resumo-rotulo">Valor arrecadado</span>
+
+                        <strong class="resumo-valor" id="arrecadado">
+                            R$ 0,00
+                        </strong>
+
+                        <small id="deMeta">de R$ 0,00</small>
+
+                        <div class="mini-barra">
+                            <div id="miniBarra"></div>
+                        </div>
+
+                        <span class="mini-pct" id="miniPct">0% da meta</span>
+                    </div>
+
+                    <div class="resumo-icone verde">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                </article>
+
+                <article class="resumo-card">
+                    <div class="resumo-texto">
+                        <span class="resumo-rotulo">Apoiadores</span>
+                        <strong class="resumo-valor" id="apoiadores">0</strong>
+                        <small class="legenda-baixa">pessoas apoiaram</small>
+                    </div>
+
+                    <div class="resumo-icone azul">
+                        <i class="fa-solid fa-user-group"></i>
+                    </div>
+                </article>
+
+                <article class="resumo-card">
+                    <div class="resumo-texto">
+                        <span class="resumo-rotulo">Dias restantes</span>
+                        <strong class="resumo-valor" id="dias">0</strong>
+                        <small class="legenda-baixa">para terminar</small>
+                    </div>
+
+                    <div class="resumo-icone amarelo">
+                        <i class="fa-regular fa-calendar"></i>
+                    </div>
+                </article>
+
+                <article class="resumo-card">
+                    <div class="resumo-texto">
+                        <span class="resumo-rotulo">Visualizações</span>
+                        <strong class="resumo-valor" id="visualizacoes">—</strong>
+                        <small class="legenda-baixa">
+                            estatística não disponível
+                        </small>
+                    </div>
+
+                    <div class="resumo-icone roxo">
+                        <i class="fa-regular fa-eye"></i>
+                    </div>
+                </article>
+
+            </section>
+
+            <!-- DESEMPENHO E ATALHOS -->
+            <section class="linha-dupla grande">
+
+                <!-- DESEMPENHO INDIVIDUAL -->
+                <article class="painel-card painel-desempenho">
+
+                    <div class="card-topo topo-desempenho">
+                        <div>
+                            <h2>Desempenho da campanha</h2>
+                            <p class="subtitulo-grafico">
+                                Acompanhe o progresso de cada projeto
+                            </p>
+                        </div>
+
+                        <select id="projetoGrafico"
+                            aria-label="Selecionar campanha">
+                            <option value="">Carregando campanhas...</option>
+                        </select>
+                    </div>
+
+                    <!-- VALORES DA CAMPANHA -->
+                    <div class="grafico-resumo">
+
+                        <div class="grafico-resumo-item">
+                            <span>Valor arrecadado</span>
+                            <strong id="graficoArrecadado">R$ 0,00</strong>
+                        </div>
+
+                        <div class="grafico-resumo-item">
+                            <span>Meta da campanha</span>
+                            <strong id="graficoMeta">R$ 0,00</strong>
+                        </div>
+
+                        <div class="grafico-resumo-item">
+                            <span>Progresso</span>
+                            <strong id="graficoPercentual">0%</strong>
+                        </div>
+
+                    </div>
+
+                    <!-- PROGRESSO -->
+                    <div class="grafico-progresso">
+
+                        <div class="grafico-progresso-topo">
+                            <span>Arrecadação da campanha</span>
+                            <span id="graficoFalta">
+                                Faltam R$ 0,00
+                            </span>
+                        </div>
+
+                        <div class="grafico-trilho">
+                            <div id="graficoBarra"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- GRÁFICO -->
+                    <div class="grafico grafico-individual" id="grafico">
+
+                        <svg
+                            id="graficoSvg"
+                            viewBox="0 0 640 220"
+                            role="img"
+                            aria-label="Comparação entre a arrecadação e a meta">
+                        </svg>
+
+                        <div class="dica" id="dica" hidden></div>
+
+                    </div>
+
+                    <!-- INDICADORES -->
+                   
+
+                </article>
+
+                <!-- ATALHOS RÁPIDOS -->
+                <article class="painel-card painel-atalhos">
+
+                    <div class="card-topo">
+                        <h2>Atalhos rápidos</h2>
+                    </div>
+
+                    <div class="atalhos">
+
+                        <button
+                            type="button"
+                            class="atalho"
+                            data-acao="editar">
+
+                            <span class="atalho-icone azul">
+                                <i class="fa-solid fa-pencil"></i>
+                            </span>
+
+                            <span class="atalho-texto">
+                                <strong>Editar campanha</strong>
+                                <small>
+                                    Atualize as informações do seu projeto
+                                </small>
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right seta"></i>
+                        </button>
+
+                        <a
+                            href="projeto.html"
+                            class="atalho"
+                            id="atalhoPagina">
+
+                            <span class="atalho-icone verde">
+                                <i class="fa-solid fa-link"></i>
+                            </span>
+
+                            <span class="atalho-texto">
+                                <strong>Ver página do projeto</strong>
+                                <small>
+                                    Veja como sua campanha aparece para todos
+                                </small>
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right seta"></i>
+                        </a>
+
+                        <button
+                            type="button"
+                            class="atalho"
+                            data-acao="compartilhar">
+
+                            <span class="atalho-icone roxo">
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </span>
+
+                            <span class="atalho-texto">
+                                <strong>Compartilhar projeto</strong>
+                                <small>
+                                    Divulgue e convide mais apoiadores
+                                </small>
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right seta"></i>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="atalho"
+                            data-acao="atualizar">
+
+                            <span class="atalho-icone amarelo">
+                                <i class="fa-solid fa-bullhorn"></i>
+                            </span>
+
+                            <span class="atalho-texto">
+                                <strong>Adicionar atualizações</strong>
+                                <small>
+                                    Conte novidades sobre o andamento
+                                </small>
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right seta"></i>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="atalho"
+                            data-acao="relatorio">
+
+                            <span class="atalho-icone azul">
+                                <i class="fa-solid fa-chart-column"></i>
+                            </span>
+
+                            <span class="atalho-texto">
+                                <strong>Ver relatórios completos</strong>
+                                <small>
+                                    Consulte os dados da campanha
+                                </small>
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right seta"></i>
+                        </button>
+
+                    </div>
+
+                </article>
+
+            </section>
+
+            <!-- PROJETOS E ATUALIZAÇÕES -->
+            <section class="linha-dupla">
+
+                <!-- PROJETOS CRIADOS -->
+                <article class="painel-card">
+
+                    <div class="card-topo">
+                        <h2>Projetos que criei</h2>
+
+                        <a href="projetos.html" class="ver-todos">
+                            Ver todos
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div id="listaProjetos">
+                        <p class="vazio">Carregando seus projetos...</p>
+                    </div>
+
+                </article>
+
+                <!-- ÚLTIMAS ATUALIZAÇÕES -->
+                <article class="painel-card" id="atualizacoes">
+
+                    <div class="card-topo">
+                        <h2>Últimas atualizações</h2>
+                    </div>
+
+                    <div class="linha-tempo" id="listaAtualizacoes">
+                        <p class="vazio">
+                            Carregando atualizações...
+                        </p>
+                    </div>
+
+                </article>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+
+        <div class="footer-content">
+
+            <div class="logo">
+                <img
+                    src="Vetorizado (1) (1).png"
+                    alt="Logo do Instituto Elo"
+                    class="footer-logo">
+            </div>
+
+            <p class="slogan">
+                Conectando ideias, transformando realidades.
+            </p>
+
+            <div class="social-icons">
+
+                <a
+                    href="https://www.instagram.com/instituto_.elo/"
+                    aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a
+                    href="https://www.facebook.com/profile.php?id=61595034278434"
+                    aria-label="Facebook">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+
+                <a
+                    href="https://www.linkedin.com/company/instituto-elo-brasil/"
+                    aria-label="LinkedIn">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="navegaçao">
+            <ul>
+                <li><a href="explorar.html">Projetos</a></li>
+                <li><a href="comoFunciona.html">Como funciona</a></li>
+                <li><a href="sobre.html">Sobre nós</a></li>
+            </ul>
+        </div>
+
+        <div class="institucional">
+            <ul>
+                <li><a href="transparencia.html">Transparência</a></li>
+                <li><a href="termos.html">Termos de uso</a></li>
+                <li><a href="politica.html">Política de privacidade</a></li>
+            </ul>
+        </div>
+
+        <div class="contato">
+            <p>contato@elo.com.br</p>
+            <p>(12) 92348-922067</p>
+        </div>
+
+    </footer>
+
+    <!-- MODAL DOS ATALHOS -->
+    <div class="modal" id="modal" hidden>
+
+        <div class="modal-fundo" data-fechar></div>
+
+        <div
+            class="modal-caixa"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitulo">
+
+            <button
+                type="button"
+                class="modal-fechar"
+                data-fechar
+                aria-label="Fechar">
+                &times;
+            </button>
+
+            <h3 id="modalTitulo"></h3>
+
+            <div id="modalCorpo"></div>
+
+        </div>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="menuLateral.js"></script>
+    <script src="dadosProjetos.js"></script>
+    <script src="criador.js"></script>
+
+</body>
+
+</html>

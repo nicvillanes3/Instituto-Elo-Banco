@@ -1,12 +1,20 @@
 
 <?php
 session_start();
-header('Content-Type: application/json; charset=utf-8');
 
-if (!isset($_SESSION['usuario_id'])) {
-    http_response_code(401);
-    echo json_encode(['erro' => 'Faça login para acessar seu perfil.']);
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate');
+
+function responder($status, $dados) {
+    http_response_code($status);
+    echo json_encode($dados, JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+if (empty($_SESSION['usuario_id'])) {
+    responder(401, [
+        'erro' => 'Sessão não encontrada. Faça login novamente.'
+    ]);
 }
 
 require_once 'conexao.php';
@@ -18,16 +26,20 @@ try {
             LIMIT 1";
 
     $consulta = $pdo->prepare($sql);
-    $consulta->execute(['id' => $_SESSION['usuario_id']]);
-    $usuario = $consulta->fetch();
+
+    $consulta->execute([
+        ':id' => $_SESSION['usuario_id']
+    ]);
+
+    $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
 
     if (!$usuario) {
-        http_response_code(404);
-        echo json_encode(['erro' => 'Usuário não encontrado.']);
-        exit;
+        responder(404, [
+            'erro' => 'Usuário não encontrado ou conta inativa.'
+        ]);
     }
 
-    echo json_encode([
+    responder(200, [
         'id' => $usuario['id'],
         'nome' => $usuario['nome'],
         'email' => $usuario['email'],
@@ -35,9 +47,12 @@ try {
         'biografia' => $usuario['biografia'],
         'tipo' => $usuario['tipo'],
         'criado_em' => $usuario['criado_em']
-    ], JSON_UNESCAPED_UNICODE);
+    ]);
 
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['erro' => 'Não foi possível carregar o perfil.']);
+} catch (Throwable $e) {
+    error_log('Erro em dados_perfil.php: ' . $e->getMessage());
+
+    responder(500, [
+        'erro' => 'Erro ao consultar os dados do perfil.'
+    ]);
 }

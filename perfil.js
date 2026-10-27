@@ -1,30 +1,62 @@
 
 document.addEventListener("DOMContentLoaded", async function () {
+    "use strict";
+
     const $ = id => document.getElementById(id);
-    const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({
+
+    const esc = texto => String(texto ?? "").replace(/[&<>"']/g, caractere => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
         '"': "&quot;",
         "'": "&#39;"
-    }[c]));
+    }[caractere]));
 
-    const moeda = n => "R$ " + Number(n || 0).toLocaleString("pt-BR", {
+    const moeda = valor => "R$ " + Number(valor || 0).toLocaleString("pt-BR", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     });
 
-    const dataBR = iso => {
-        if (!iso) return "";
-        const partes = iso.split("-");
-        return partes.length === 3 ? partes.reverse().join("/") : iso;
+    const dataBR = data => {
+        if (!data) return "";
+
+        const partes = String(data).split("-");
+        return partes.length === 3
+            ? partes.reverse().join("/")
+            : data;
     };
 
     function aviso(texto) {
-        const el = $("aviso");
-        el.textContent = texto;
-        el.classList.add("visivel");
-        setTimeout(() => el.classList.remove("visivel"), 2500);
+        const elemento = $("aviso");
+
+        if (!elemento) {
+            console.log(texto);
+            return;
+        }
+
+        elemento.textContent = texto;
+        elemento.classList.add("visivel");
+
+        setTimeout(() => {
+            elemento.classList.remove("visivel");
+        }, 2500);
+    }
+
+    function atualizarSessaoLocal() {
+        try {
+            const sessao = JSON.parse(
+                localStorage.getItem("eloSessao") || "{}"
+            );
+
+            localStorage.setItem("eloSessao", JSON.stringify({
+                ...sessao,
+                nome: perfil.nome,
+                email: perfil.email,
+                tipo: perfil.tipo
+            }));
+        } catch (erro) {
+            console.error("Erro ao sincronizar a sessão:", erro);
+        }
     }
 
     let perfil = {
@@ -36,20 +68,62 @@ document.addEventListener("DOMContentLoaded", async function () {
         criado_em: null
     };
 
+    // =====================================================
+    // CARREGAR DADOS DO USUÁRIO
+    // =====================================================
+
     try {
         const resposta = await fetch("dados_perfil.php", {
-            credentials: "same-origin"
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            },
+            cache: "no-store"
         });
 
+        console.log("Status de dados_perfil.php:", resposta.status);
+        console.log("URL de resposta:", resposta.url);
+
+        // Não apaga a sessão local automaticamente.
+        // Primeiro identifica se o PHP reconheceu a sessão.
         if (resposta.status === 401) {
-            window.location.href = "login.html";
+            aviso("Sua sessão do servidor expirou. Entre novamente.");
+
+            console.error(
+                "O PHP retornou 401. Verifique a sessão em dados_perfil.php."
+            );
+
             return;
+        }
+
+        const tipoResposta = resposta.headers.get("content-type") || "";
+
+        if (!tipoResposta.includes("application/json")) {
+            const conteudo = await resposta.text();
+
+            console.error(
+                "A resposta de dados_perfil.php não é JSON:",
+                conteudo.slice(0, 500)
+            );
+
+            throw new Error(
+                "O servidor não retornou JSON. Confira dados_perfil.php."
+            );
         }
 
         const dados = await resposta.json();
 
         if (!resposta.ok) {
-            throw new Error(dados.erro || "Não foi possível carregar o perfil.");
+            throw new Error(
+                dados.erro || "Não foi possível carregar o perfil."
+            );
+        }
+
+        if (!dados || !dados.email) {
+            throw new Error(
+                dados.erro || "O servidor não retornou os dados do usuário."
+            );
         }
 
         perfil = {
@@ -60,10 +134,18 @@ document.addEventListener("DOMContentLoaded", async function () {
             tipo: dados.tipo || "apoiador",
             criado_em: dados.criado_em || null
         };
+
+        atualizarSessaoLocal();
+
     } catch (erro) {
+        console.error("Erro ao carregar o perfil:", erro);
         aviso(erro.message || "Erro ao carregar o perfil.");
         return;
     }
+
+    // =====================================================
+    // PROJETOS E DOAÇÕES LOCAIS
+    // =====================================================
 
     const CHAVE_PAINEL = "eloPainelCriador";
 
@@ -71,7 +153,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         try {
             const valor = JSON.parse(localStorage.getItem(chave));
             return valor ?? padrao;
-        } catch (e) {
+        } catch (erro) {
             return padrao;
         }
     };
@@ -87,17 +169,25 @@ document.addEventListener("DOMContentLoaded", async function () {
         : [];
 
     const criados = idsProjetos
-        .map(id => listaProjetos.find(p => p.id === id))
+        .map(id => listaProjetos.find(
+            projeto => String(projeto.id) === String(id)
+        ))
         .filter(Boolean);
 
-    criados.forEach(p => {
-        const ed = (painel.edicoes || {})[p.id];
+    criados.forEach(projeto => {
+        const edicao = (painel.edicoes || {})[projeto.id];
 
-        if (ed) {
-            Object.assign(p, ed);
+        if (edicao) {
+            Object.assign(projeto, edicao);
 
-            if (p.meta > 0) {
-                p.pct = Math.min(100, Math.round((p.arrecadado / p.meta) * 100));
+            if (Number(projeto.meta) > 0) {
+                projeto.pct = Math.min(
+                    100,
+                    Math.round(
+                        Number(projeto.arrecadado || 0) /
+                        Number(projeto.meta) * 100
+                    )
+                );
             }
         }
     });
@@ -107,117 +197,213 @@ document.addEventListener("DOMContentLoaded", async function () {
         : [];
 
     const apoios = doacoes
-        .map(d => ({
-            ...d,
-            projeto: listaProjetos.find(p => p.id === d.id)
+        .map(doacao => ({
+            ...doacao,
+            projeto: listaProjetos.find(
+                projeto => String(projeto.id) === String(doacao.id)
+            )
         }))
-        .filter(d => d.projeto)
-        .sort((a, b) => String(b.data || "").localeCompare(String(a.data || "")));
+        .filter(doacao => doacao.projeto)
+        .sort((a, b) =>
+            String(b.data || "").localeCompare(String(a.data || ""))
+        );
+
+    // =====================================================
+    // RENDERIZAR PERFIL
+    // =====================================================
 
     function renderizarPerfil() {
-        $("nomePerfil").textContent = perfil.nome;
-        $("emailPerfil").textContent = perfil.email;
-        $("bioPerfil").textContent = perfil.bio || "Adicione uma biografia para contar um pouco sobre você.";
-        $("fotoPerfil").src = perfil.foto_perfil || "mariane.jpg";
+        if ($("nomePerfil")) {
+            $("nomePerfil").textContent = perfil.nome;
+        }
+
+        if ($("emailPerfil")) {
+            $("emailPerfil").textContent = perfil.email;
+        }
+
+        if ($("bioPerfil")) {
+            $("bioPerfil").textContent = perfil.bio ||
+                "Adicione uma biografia para contar um pouco sobre você.";
+        }
+
+        if ($("fotoPerfil")) {
+            $("fotoPerfil").src = perfil.foto_perfil || "mariane.jpg";
+        }
 
         const tipos = {
-            apoiador: "Apoiadora",
-            criador: "Criadora",
-            administrador: "Administradora"
+            apoiador: "Apoiador(a)",
+            criador: "Criador(a)",
+            administrador: "Administrador(a)"
         };
 
-        $("nomePerfil").textContent = perfil.nome;
+        const selo = document.querySelector(".selo-tipo");
 
-        document.querySelector(".selo-tipo").innerHTML =
-            '<i class="fa-regular fa-circle-check"></i> ' +
-            esc(tipos[perfil.tipo] || "Membro");
+        if (selo) {
+            selo.innerHTML =
+                '<i class="fa-regular fa-circle-check"></i> ' +
+                esc(tipos[perfil.tipo] || "Membro");
+        }
 
-        if (perfil.criado_em) {
-            const data = new Date(perfil.criado_em.replace(" ", "T"));
+        if ($("membroPerfil")) {
+            if (perfil.criado_em) {
+                const data = new Date(
+                    String(perfil.criado_em).replace(" ", "T")
+                );
 
-            $("membroPerfil").textContent = "Membro desde " +
-                data.toLocaleDateString("pt-BR", {
-                    month: "long",
-                    year: "numeric"
-                });
-        } else {
-            $("membroPerfil").textContent = "";
+                $("membroPerfil").textContent = "Membro desde " +
+                    data.toLocaleDateString("pt-BR", {
+                        month: "long",
+                        year: "numeric"
+                    });
+            } else {
+                $("membroPerfil").textContent = "";
+            }
         }
 
         document.title = "Meu perfil | " + perfil.nome;
     }
 
+    // =====================================================
+    // NÚMEROS DO PERFIL
+    // =====================================================
+
     function renderizarNumeros() {
-        const total = apoios.reduce((soma, d) => soma + Number(d.valor || 0), 0);
+        const total = apoios.reduce(
+            (soma, doacao) => soma + Number(doacao.valor || 0),
+            0
+        );
 
-        $("statCriados").textContent = criados.length;
-        $("statApoiados").textContent = new Set(apoios.map(d => d.id)).size;
-        $("statTotal").textContent = moeda(total);
+        if ($("statCriados")) {
+            $("statCriados").textContent = criados.length;
+        }
 
-        const pessoasImpactadas = 45;
-        $("statPessoas").textContent = pessoasImpactadas;
+        if ($("statApoiados")) {
+            $("statApoiados").textContent = new Set(
+                apoios.map(doacao => doacao.id)
+            ).size;
+        }
+
+        if ($("statTotal")) {
+            $("statTotal").textContent = moeda(total);
+        }
+
+        if ($("statPessoas")) {
+            // Valor provisório até integrar esse dado com o banco.
+            $("statPessoas").textContent = 45;
+        }
     }
 
-    const linhaCriado = p => {
-        const pct = Math.min(100, Math.max(0, Number(p.pct) || 0));
+    // =====================================================
+    // CARDS DE PROJETOS
+    // =====================================================
+
+    const linhaCriado = projeto => {
+        const percentual = Math.min(
+            100,
+            Math.max(0, Number(projeto.pct) || 0)
+        );
 
         return `
-        <a href="projeto.html?id=${encodeURIComponent(p.id)}" class="item">
-            <div class="item-foto" style="background-image:url('${esc(p.img || "")}')"></div>
-            <div class="item-meio">
-                <strong>${esc(p.titulo)}</strong>
-                <small>${esc(p.org)}</small>
-                <div class="mini-barra"><div style="width:${pct}%"></div></div>
-                <div class="item-valores">
-                    <span>${moeda(p.arrecadado)} arrecadados</span>
-                    <span>${pct}% da meta</span>
+            <a href="projeto.html?id=${encodeURIComponent(projeto.id)}"
+               class="item">
+
+                <div class="item-foto"
+                     style="background-image:url('${esc(projeto.img || "")}')">
                 </div>
-            </div>
-            <i class="fa-solid fa-chevron-right seta"></i>
-        </a>`;
+
+                <div class="item-meio">
+                    <strong>${esc(projeto.titulo)}</strong>
+                    <small>${esc(projeto.org || "")}</small>
+
+                    <div class="mini-barra">
+                        <div style="width:${percentual}%"></div>
+                    </div>
+
+                    <div class="item-valores">
+                        <span>${moeda(projeto.arrecadado)} arrecadados</span>
+                        <span>${percentual}% da meta</span>
+                    </div>
+                </div>
+
+                <i class="fa-solid fa-chevron-right seta"></i>
+            </a>
+        `;
     };
 
-    const linhaApoio = d => {
-        const projeto = d.projeto;
-        const andamento = Number(projeto.dias) > 0 && Number(projeto.pct) < 100;
+    const linhaApoio = doacao => {
+        const projeto = doacao.projeto;
+
+        const andamento =
+            Number(projeto.dias) > 0 &&
+            Number(projeto.pct) < 100;
 
         return `
-        <a href="projeto.html?id=${encodeURIComponent(projeto.id)}" class="item">
-            <div class="item-foto" style="background-image:url('${esc(projeto.img || "")}')"></div>
-            <div class="item-meio">
-                <strong>${esc(projeto.titulo)}</strong>
-                <small>Por ${esc(projeto.autor)}</small>
-                <div class="item-valores">
-                    <span>${moeda(d.valor)} doados</span>
-                    <span>${dataBR(d.data)}</span>
+            <a href="projeto.html?id=${encodeURIComponent(projeto.id)}"
+               class="item">
+
+                <div class="item-foto"
+                     style="background-image:url('${esc(projeto.img || "")}')">
                 </div>
-            </div>
-            <span class="tag-status ${andamento ? "" : "concluido"}">${andamento ? "Em andamento" : "Concluído"}</span>
-            <i class="fa-solid fa-chevron-right seta"></i>
-        </a>`;
+
+                <div class="item-meio">
+                    <strong>${esc(projeto.titulo)}</strong>
+                    <small>Por ${esc(projeto.autor || "")}</small>
+
+                    <div class="item-valores">
+                        <span>${moeda(doacao.valor)} doados</span>
+                        <span>${dataBR(doacao.data)}</span>
+                    </div>
+                </div>
+
+                <span class="tag-status ${andamento ? "" : "concluido"}">
+                    ${andamento ? "Em andamento" : "Concluído"}
+                </span>
+
+                <i class="fa-solid fa-chevron-right seta"></i>
+            </a>
+        `;
     };
 
     function renderizarListas() {
-        $("resumoCriados").innerHTML = criados.slice(0, 3).map(linhaCriado).join("") ||
-            '<p class="vazio">Você ainda não criou nenhum projeto.</p>';
+        if ($("resumoCriados")) {
+            $("resumoCriados").innerHTML =
+                criados.slice(0, 3).map(linhaCriado).join("") ||
+                '<p class="vazio">Você ainda não criou nenhum projeto.</p>';
+        }
 
-        $("listaCriados").innerHTML = criados.map(linhaCriado).join("") ||
-            '<p class="vazio">Você ainda não criou nenhum projeto.</p>';
+        if ($("listaCriados")) {
+            $("listaCriados").innerHTML =
+                criados.map(linhaCriado).join("") ||
+                '<p class="vazio">Você ainda não criou nenhum projeto.</p>';
+        }
 
-        $("resumoApoiados").innerHTML = apoios.slice(0, 3).map(linhaApoio).join("") ||
-            '<p class="vazio">Você ainda não apoiou nenhum projeto.</p>';
+        if ($("resumoApoiados")) {
+            $("resumoApoiados").innerHTML =
+                apoios.slice(0, 3).map(linhaApoio).join("") ||
+                '<p class="vazio">Você ainda não apoiou nenhum projeto.</p>';
+        }
 
-        $("listaApoiados").innerHTML = apoios.map(linhaApoio).join("") ||
-            '<p class="vazio">Você ainda não apoiou nenhum projeto.</p>';
+        if ($("listaApoiados")) {
+            $("listaApoiados").innerHTML =
+                apoios.map(linhaApoio).join("") ||
+                '<p class="vazio">Você ainda não apoiou nenhum projeto.</p>';
+        }
     }
 
+    // =====================================================
+    // ABAS
+    // =====================================================
+
     function abrirAba(nome) {
-        document.querySelectorAll(".aba").forEach(a => {
-            a.classList.toggle("ativo", a.dataset.aba === nome);
+        document.querySelectorAll(".aba").forEach(aba => {
+            aba.classList.toggle("ativo", aba.dataset.aba === nome);
         });
 
-        document.querySelectorAll(".aba-painel").forEach(p => {
-            p.classList.toggle("ativo", p.id === "aba-" + nome);
+        document.querySelectorAll(".aba-painel").forEach(painelAba => {
+            painelAba.classList.toggle(
+                "ativo",
+                painelAba.id === "aba-" + nome
+            );
         });
 
         if (nome === "informacoes") {
@@ -226,241 +412,371 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     document.querySelectorAll(".aba").forEach(aba => {
-        aba.addEventListener("click", () => abrirAba(aba.dataset.aba));
+        aba.addEventListener("click", () => {
+            abrirAba(aba.dataset.aba);
+        });
     });
 
     document.querySelectorAll("[data-ir]").forEach(botao => {
-        botao.addEventListener("click", () => abrirAba(botao.dataset.ir));
+        botao.addEventListener("click", () => {
+            abrirAba(botao.dataset.ir);
+        });
     });
 
     function preencherFormulario() {
-        $("campoNome").value = perfil.nome;
-        $("campoEmail").value = perfil.email;
-        $("campoBio").value = perfil.bio;
-        $("erroPerfil").hidden = true;
+        if ($("campoNome")) $("campoNome").value = perfil.nome;
+        if ($("campoEmail")) $("campoEmail").value = perfil.email;
+        if ($("campoBio")) $("campoBio").value = perfil.bio;
+        if ($("erroPerfil")) $("erroPerfil").hidden = true;
     }
 
-    $("btnEditar").addEventListener("click", () => {
-        abrirAba("informacoes");
-        document.querySelector(".abas").scrollIntoView({
-            behavior: "smooth",
-            block: "start"
+    if ($("btnEditar")) {
+        $("btnEditar").addEventListener("click", () => {
+            abrirAba("informacoes");
+
+            if (document.querySelector(".abas")) {
+                document.querySelector(".abas").scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+
+            if ($("campoNome")) $("campoNome").focus();
         });
-        $("campoNome").focus();
-    });
+    }
 
-    $("cancelarPerfil").addEventListener("click", () => abrirAba("geral"));
-
-    $("formPerfil").addEventListener("submit", async e => {
-        e.preventDefault();
-
-        const nome = $("campoNome").value.trim();
-        const email = $("campoEmail").value.trim();
-        const bio = $("campoBio").value.trim();
-        const erro = $("erroPerfil");
-
-        let mensagem = "";
-
-        if (!nome) {
-            mensagem = "Informe seu nome completo.";
-        } else if (nome.length > 100) {
-            mensagem = "O nome deve ter até 100 caracteres.";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            mensagem = "Informe um e-mail válido.";
-        } else if (email.length > 150) {
-            mensagem = "O e-mail deve ter até 150 caracteres.";
-        } else if (bio.length > 200) {
-            mensagem = "A biografia deve ter até 200 caracteres.";
-        }
-
-        if (mensagem) {
-            erro.textContent = mensagem;
-            erro.hidden = false;
-            return;
-        }
-
-        const dados = new FormData();
-        dados.append("nome", nome);
-        dados.append("email", email);
-        dados.append("biografia", bio);
-
-        try {
-            const resposta = await fetch("atualizar_perfil.php", {
-                method: "POST",
-                body: dados,
-                credentials: "same-origin"
-            });
-
-            const resultado = await resposta.json();
-
-            if (resposta.status === 401) {
-                window.location.href = "login.html";
-                return;
-            }
-
-            if (!resposta.ok) {
-                throw new Error(resultado.erro || "Não foi possível salvar o perfil.");
-            }
-
-            perfil.nome = resultado.usuario.nome;
-            perfil.email = resultado.usuario.email;
-            perfil.bio = resultado.usuario.biografia || "";
-            perfil.foto_perfil = resultado.usuario.foto_perfil || null;
-
-            renderizarPerfil();
+    if ($("cancelarPerfil")) {
+        $("cancelarPerfil").addEventListener("click", () => {
             abrirAba("geral");
-            aviso(resultado.mensagem || "Perfil atualizado com sucesso!");
-        } catch (erroSalvamento) {
-            erro.textContent = erroSalvamento.message || "Erro ao salvar o perfil.";
-            erro.hidden = false;
-        }
-    });
+        });
+    }
 
-    $("btnFoto").addEventListener("click", () => {
-        $("arquivoFoto").click();
-    });
+    // =====================================================
+    // SALVAR DADOS DO PERFIL
+    // =====================================================
 
-    $("arquivoFoto").addEventListener("change", async e => {
-        const arquivo = e.target.files[0];
+    if ($("formPerfil")) {
+        $("formPerfil").addEventListener("submit", async evento => {
+            evento.preventDefault();
 
-        if (!arquivo) return;
+            const nome = $("campoNome")?.value.trim() || "";
+            const email = $("campoEmail")?.value.trim() || "";
+            const bio = $("campoBio")?.value.trim() || "";
+            const erro = $("erroPerfil");
 
-        if (arquivo.size > 2 * 1024 * 1024) {
-            aviso("Escolha uma imagem de até 2 MB.");
-            e.target.value = "";
-            return;
-        }
+            let mensagem = "";
 
-        if (!["image/jpeg", "image/png", "image/webp"].includes(arquivo.type)) {
-            aviso("Use uma imagem JPG, PNG ou WEBP.");
-            e.target.value = "";
-            return;
-        }
+            if (!nome) {
+                mensagem = "Informe seu nome completo.";
+            } else if (nome.length > 100) {
+                mensagem = "O nome deve ter até 100 caracteres.";
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                mensagem = "Informe um e-mail válido.";
+            } else if (email.length > 150) {
+                mensagem = "O e-mail deve ter até 150 caracteres.";
+            } else if (bio.length > 200) {
+                mensagem = "A biografia deve ter até 200 caracteres.";
+            }
 
-        const dados = new FormData();
-        dados.append("nome", perfil.nome);
-        dados.append("email", perfil.email);
-        dados.append("biografia", perfil.bio);
-        dados.append("foto", arquivo);
+            if (mensagem) {
+                if (erro) {
+                    erro.textContent = mensagem;
+                    erro.hidden = false;
+                } else {
+                    aviso(mensagem);
+                }
 
-        try {
-            const resposta = await fetch("atualizar_perfil.php", {
-                method: "POST",
-                body: dados,
-                credentials: "same-origin"
-            });
-
-            const resultado = await resposta.json();
-
-            if (resposta.status === 401) {
-                window.location.href = "login.html";
                 return;
             }
 
-            if (!resposta.ok) {
-                throw new Error(resultado.erro || "Não foi possível atualizar a foto.");
+            const dados = new FormData();
+            dados.append("nome", nome);
+            dados.append("email", email);
+            dados.append("biografia", bio);
+
+            try {
+                const resposta = await fetch("atualizar_perfil.php", {
+                    method: "POST",
+                    body: dados,
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                const resultado = await resposta.json();
+
+                if (resposta.status === 401) {
+                    aviso("Sua sessão expirou. Entre novamente.");
+                    return;
+                }
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.erro ||
+                        resultado.mensagem ||
+                        "Não foi possível salvar o perfil."
+                    );
+                }
+
+                if (!resultado.usuario) {
+                    throw new Error("O servidor não retornou os dados atualizados.");
+                }
+
+                perfil.nome = resultado.usuario.nome || nome;
+                perfil.email = resultado.usuario.email || email;
+                perfil.bio = resultado.usuario.biografia || "";
+                perfil.foto_perfil =
+                    resultado.usuario.foto_perfil || perfil.foto_perfil;
+
+                atualizarSessaoLocal();
+                renderizarPerfil();
+                abrirAba("geral");
+
+                aviso(resultado.mensagem || "Perfil atualizado com sucesso!");
+
+            } catch (erroSalvamento) {
+                console.error("Erro ao salvar perfil:", erroSalvamento);
+
+                if (erro) {
+                    erro.textContent =
+                        erroSalvamento.message ||
+                        "Erro ao salvar o perfil.";
+
+                    erro.hidden = false;
+                } else {
+                    aviso(erroSalvamento.message || "Erro ao salvar o perfil.");
+                }
+            }
+        });
+    }
+
+    // =====================================================
+    // FOTO DO PERFIL
+    // =====================================================
+
+    if ($("btnFoto") && $("arquivoFoto")) {
+        $("btnFoto").addEventListener("click", () => {
+            $("arquivoFoto").click();
+        });
+
+        $("arquivoFoto").addEventListener("change", async evento => {
+            const arquivo = evento.target.files[0];
+
+            if (!arquivo) return;
+
+            if (arquivo.size > 2 * 1024 * 1024) {
+                aviso("Escolha uma imagem de até 2 MB.");
+                evento.target.value = "";
+                return;
             }
 
-            perfil.foto_perfil = resultado.usuario.foto_perfil || null;
-            $("fotoPerfil").src = perfil.foto_perfil || "mariane.jpg";
-            aviso("Foto atualizada!");
-        } catch (erroFoto) {
-            aviso(erroFoto.message || "Erro ao atualizar a foto.");
-        } finally {
-            e.target.value = "";
-        }
-    });
+            if (!["image/jpeg", "image/png", "image/webp"].includes(arquivo.type)) {
+                aviso("Use uma imagem JPG, PNG ou WEBP.");
+                evento.target.value = "";
+                return;
+            }
+
+            const dados = new FormData();
+            dados.append("nome", perfil.nome);
+            dados.append("email", perfil.email);
+            dados.append("biografia", perfil.bio);
+            dados.append("foto", arquivo);
+
+            try {
+                const resposta = await fetch("atualizar_perfil.php", {
+                    method: "POST",
+                    body: dados,
+                    credentials: "same-origin",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                const resultado = await resposta.json();
+
+                if (resposta.status === 401) {
+                    aviso("Sua sessão expirou. Entre novamente.");
+                    return;
+                }
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.erro ||
+                        resultado.mensagem ||
+                        "Não foi possível atualizar a foto."
+                    );
+                }
+
+                if (!resultado.usuario) {
+                    throw new Error("O servidor não retornou os dados atualizados.");
+                }
+
+                perfil.nome = resultado.usuario.nome || perfil.nome;
+                perfil.email = resultado.usuario.email || perfil.email;
+                perfil.bio = resultado.usuario.biografia || "";
+                perfil.foto_perfil =
+                    resultado.usuario.foto_perfil || perfil.foto_perfil;
+
+                atualizarSessaoLocal();
+                renderizarPerfil();
+
+                aviso("Foto atualizada!");
+
+            } catch (erroFoto) {
+                console.error("Erro ao atualizar foto:", erroFoto);
+                aviso(erroFoto.message || "Erro ao atualizar a foto.");
+            } finally {
+                evento.target.value = "";
+            }
+        });
+    }
+
+    // =====================================================
+    // MODAL DE CONVITE
+    // =====================================================
 
     const modal = $("modal");
     let ultimoFoco = null;
 
     function abrirModal(titulo, corpoHtml) {
+        if (!modal) {
+            aviso("O modal de convite não foi encontrado no HTML.");
+            return;
+        }
+
         ultimoFoco = document.activeElement;
-        $("modalTitulo").textContent = titulo;
-        $("modalCorpo").innerHTML = corpoHtml;
+
+        if ($("modalTitulo")) {
+            $("modalTitulo").textContent = titulo;
+        }
+
+        if ($("modalCorpo")) {
+            $("modalCorpo").innerHTML = corpoHtml;
+        }
+
         modal.hidden = false;
 
-        const primeiro = modal.querySelector("input, button.btn-azul, .rede");
+        const primeiro = modal.querySelector(
+            "input, button.btn-azul, .rede"
+        );
 
-        if (primeiro) {
-            primeiro.focus();
-        }
+        if (primeiro) primeiro.focus();
     }
 
     function fecharModal() {
-        modal.hidden = true;
-        $("modalCorpo").innerHTML = "";
+        if (!modal) return;
 
-        if (ultimoFoco) {
+        modal.hidden = true;
+
+        if ($("modalCorpo")) {
+            $("modalCorpo").innerHTML = "";
+        }
+
+        if (ultimoFoco && typeof ultimoFoco.focus === "function") {
             ultimoFoco.focus();
         }
     }
 
-    modal.addEventListener("click", e => {
-        if (e.target.closest("[data-fechar]")) {
+    if (modal) {
+        modal.addEventListener("click", evento => {
+            if (evento.target.closest("[data-fechar]")) {
+                fecharModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", evento => {
+        if (evento.key === "Escape" && modal && !modal.hidden) {
             fecharModal();
         }
     });
 
-    document.addEventListener("keydown", e => {
-        if (e.key === "Escape" && !modal.hidden) {
-            fecharModal();
-        }
-    });
+    if ($("btnConvidar")) {
+        $("btnConvidar").addEventListener("click", () => {
+            const url = new URL("index.html", window.location.href).href;
 
-    $("btnConvidar").addEventListener("click", () => {
-        const url = new URL("index.html", window.location.href).href;
-        const texto = "Venha apoiar ideias que transformam o futuro no Instituto Elo!";
+            const texto =
+                "Venha apoiar ideias que transformam o futuro no Instituto Elo!";
 
-        abrirModal("Convidar amigos", `
-            <p class="modal-texto">Compartilhe a Elo e ajude mais projetos a saírem do papel.</p>
-            <div class="link-compartilhar">
-                <input type="text" id="linkConvite" value="${esc(url)}" readonly>
-                <button type="button" class="btn-azul" id="copiarConvite">Copiar</button>
-            </div>
-            <div class="redes">
-                <a class="rede" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(texto + " " + url)}">
-                    <i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-                <a class="rede" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}">
-                    <i class="fa-brands fa-facebook-f"></i> Facebook</a>
-                <a class="rede" href="mailto:?subject=${encodeURIComponent("Conheça o Instituto Elo")}&body=${encodeURIComponent(texto + "\n" + url)}">
-                    <i class="fa-regular fa-envelope"></i> E-mail</a>
-                ${navigator.share ? '<button type="button" class="rede" id="maisOpcoes"><i class="fa-solid fa-share-nodes"></i> Mais opções</button>' : ""}
-            </div>`);
+            abrirModal("Convidar amigos", `
+                <p class="modal-texto">
+                    Compartilhe a Elo e ajude mais projetos a saírem do papel.
+                </p>
 
-        $("copiarConvite").addEventListener("click", async () => {
-            try {
-                await navigator.clipboard.writeText(url);
-            } catch (erroCopia) {
-                $("linkConvite").select();
-                document.execCommand("copy");
+                <div class="link-compartilhar">
+                    <input type="text" id="linkConvite"
+                           value="${esc(url)}" readonly>
+
+                    <button type="button" class="btn-azul" id="copiarConvite">
+                        Copiar
+                    </button>
+                </div>
+
+                <div class="redes">
+                    <a class="rede" target="_blank" rel="noopener"
+                       href="https://wa.me/?text=${encodeURIComponent(texto + " " + url)}">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                    </a>
+
+                    <a class="rede" target="_blank" rel="noopener"
+                       href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+
+                    <a class="rede"
+                       href="mailto:?subject=${encodeURIComponent("Conheça o Instituto Elo")}&body=${encodeURIComponent(texto + "\n" + url)}">
+                        <i class="fa-regular fa-envelope"></i> E-mail
+                    </a>
+
+                    ${navigator.share ? `
+                        <button type="button" class="rede" id="maisOpcoes">
+                            <i class="fa-solid fa-share-nodes"></i> Mais opções
+                        </button>
+                    ` : ""}
+                </div>
+            `);
+
+            if ($("copiarConvite")) {
+                $("copiarConvite").addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(url);
+                    } catch (erroCopia) {
+                        if ($("linkConvite")) {
+                            $("linkConvite").select();
+                            document.execCommand("copy");
+                        }
+                    }
+
+                    $("copiarConvite").textContent = "Copiado!";
+
+                    setTimeout(() => {
+                        if ($("copiarConvite")) {
+                            $("copiarConvite").textContent = "Copiar";
+                        }
+                    }, 2000);
+                });
             }
 
-            $("copiarConvite").textContent = "Copiado!";
-
-            setTimeout(() => {
-                if ($("copiarConvite")) {
-                    $("copiarConvite").textContent = "Copiar";
-                }
-            }, 2000);
+            if ($("maisOpcoes")) {
+                $("maisOpcoes").addEventListener("click", async () => {
+                    try {
+                        await navigator.share({
+                            title: "Instituto Elo",
+                            text: texto,
+                            url
+                        });
+                    } catch (erroCompartilhar) {
+                        // O usuário pode cancelar o compartilhamento.
+                    }
+                });
+            }
         });
+    }
 
-        const mais = $("maisOpcoes");
-
-        if (mais) {
-            mais.addEventListener("click", async () => {
-                try {
-                    await navigator.share({
-                        title: "Instituto Elo",
-                        text: texto,
-                        url
-                    });
-                } catch (erroCompartilhar) {
-                    // O compartilhamento foi cancelado.
-                }
-            });
-        }
-    });
+    // =====================================================
+    // INICIALIZAÇÃO
+    // =====================================================
 
     renderizarPerfil();
     renderizarNumeros();

@@ -42,6 +42,7 @@ try {
     $_SESSION['usuario_nome'] = $usuario['nome'];
     $_SESSION['usuario_email'] = $usuario['email'];
     $_SESSION['usuario_tipo'] = $usuario['tipo'];
+    session_write_close();
 
     $sessao = [
         'id' => $usuario['id'],
