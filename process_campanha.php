@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 require_once 'conexao.php';
@@ -14,6 +13,7 @@ if (empty($_SESSION['usuario_id'])) {
 }
 
 $usuario_id = (int) $_SESSION['usuario_id'];
+
 $titulo = trim($_POST['titulo'] ?? '');
 $categoria = trim($_POST['categoria'] ?? '');
 $resumo = trim($_POST['resumo'] ?? '');
@@ -156,6 +156,27 @@ try {
     $projetoId = (int) $pdo->lastInsertId();
 
     $pdo->commit();
+
+    // Cria uma notificação para o criador da campanha.
+    // Se a notificação falhar, a campanha permanece cadastrada.
+    try {
+        $sqlNotificacao = "INSERT INTO notificacoes
+            (usuario_id, titulo, mensagem, tipo, lida, link)
+            VALUES
+            (:usuario_id, :titulo, :mensagem, 'projeto', 0, :link)";
+
+        $stmtNotificacao = $pdo->prepare($sqlNotificacao);
+
+        $stmtNotificacao->execute([
+            ':usuario_id' => $usuario_id,
+            ':titulo' => 'Campanha publicada!',
+            ':mensagem' => 'Sua campanha "' . $titulo . '" foi cadastrada com sucesso.',
+            ':link' => 'projeto.html?id=' . $projetoId
+        ]);
+    } catch (Throwable $erroNotificacao) {
+        // Não impede a publicação caso a notificação falhe.
+        error_log('Erro ao criar notificação: ' . $erroNotificacao->getMessage());
+    }
 
     header('Location: projeto.html?id=' . $projetoId . '&criado=sucesso');
     exit;

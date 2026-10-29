@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificações</title>
+
+    <link rel="stylesheet" href="notificacoes.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="menuLateral.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+
+    <script src="auth.js"></script>
+    <script src="menuLateral.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVBAR ORIGINAL -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="index.html">
+                <img src="logoElo.jpeg" alt="Instituto Elo Logo">
+            </a>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="index.html">Explorar</a></li>
+            <li><a href="projetos.html">Projetos</a></li>
+            <li><a href="comoFunciona.html">Como funciona</a></li>
+            <li><a href="sobre.html">Sobre nós</a></li>
+
+            <li>
+                <div class="search-box">
+                    <input type="text" placeholder="Buscar projetos">
+                    <button type="button" aria-label="Buscar">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+                </div>
+            </li>
+
+            <li><a href="login.html">Entrar</a></li>
+
+            <li>
+                <input type="button" value="Criar Campanha" id="botaoCampanha"
+                    onclick="window.location.href='criarCampanha1.html'">
+            </li>
+        </ul>
+    </nav>
+
+    <!-- LAYOUT ORIGINAL -->
+    <div class="layout-principal">
+
+        <!-- MENU LATERAL ORIGINAL -->
+        <aside class="area-lateral">
+
+            <div class="barra-lateral">
+                <a href="perfil.html">
+                    <i class="fa-regular fa-user"></i> Meu perfil
+                </a>
+
+                <a href="criador.html">
+                    <i class="fa-solid fa-chart-column"></i> Painel do criador
+                </a>
+
+                <a href="projetos.html">
+                    <i class="fa-regular fa-comment-dots"></i> Projetos criados
+                </a>
+
+                <a href="doacoes.html">
+                    <i class="fa-solid fa-dollar-sign"></i> Minhas doações
+                </a>
+
+                <a href="favoritos.html">
+                    <i class="fa-regular fa-heart"></i> Favoritos
+                </a>
+
+                <a href="notificacao.html">
+                    <i class="fa-regular fa-bell"></i> Notificações
+                </a>
+
+                <a href="configuracoes.html">
+                    <i class="fa-solid fa-gear"></i> Configurações
+                </a>
+
+                <a href="logout.php">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </a>
+            </div>
+
+            <div class="card-destaque">
+                <i class="fa-regular fa-heart" id="card-icon"></i>
+                <p id="card-text">
+                    Conecte-se com ideias que transformam o futuro.
+                </p>
+            </div>
+
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL ORIGINAL -->
+        <main class="conteudo-principal">
+
+            <h1>Notificações</h1>
+            <p>Acompanhe tudo o que acontece na plataforma.</p>
+
+            <!-- FILTROS ORIGINAIS -->
+            <div class="notificacao">
+
+                <p class="filtro ativo" data-filtro="todos" role="button" tabindex="0">
+                    Todos (<span>0</span>)
+                </p>
+
+                <p class="filtro" data-filtro="nao-lidos" role="button" tabindex="0">
+                    Não lidos (<span>0</span>)
+                </p>
+
+                <p class="filtro" data-filtro="doacao" role="button" tabindex="0">
+                    Doações (<span>0</span>)
+                </p>
+
+                <p class="filtro" data-filtro="projeto" role="button" tabindex="0">
+                    Projetos (<span>0</span>)
+                </p>
+
+                <p class="filtro" data-filtro="sistema" role="button" tabindex="0">
+                    Sistema (<span>0</span>)
+                </p>
+
+                <button type="button" id="marcarTodas">
+                    ✓ Marcar todas como lidas
+                </button>
+
+            </div>
+
+            <!-- OS CARDS SERÃO CARREGADOS PELO BANCO -->
+            <div class="cards" id="listaNotificacoes">
+                <p>Carregando notificações...</p>
+            </div>
+
+            <button type="button" id="carregarMais" class="ver-mais" hidden>
+                Carregar mais ↓
+            </button>
+
+        </main>
+    </div>
+
+    <!-- FOOTER ORIGINAL -->
+    <div class="footer">
+
+        <div class="footer-content">
+            <div class="logo">
+                <img src="Vetorizado (1) (1).png" alt="Logo" class="footer-logo">
+            </div>
+
+            <p class="slogan">Conectando ideias, transformando realidades.</p>
+
+            <div class="social-icons">
+                <a href="https://www.instagram.com/instituto_.elo/?utm_source=ig_web_button_share_sheet"
+                    aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="https://www.facebook.com/profile.php?id=61595034278434"
+                    aria-label="Facebook">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+
+                <a href="https://www.linkedin.com/company/instituto-elo-brasil/home/?viewAsMember=true"
+                    aria-label="LinkedIn">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="navegaçao">
+            <ul>
+                <li><a href="explorar.html">Projetos</a></li>
+                <li><a href="index.html">Como funciona</a></li>
+                <li><a href="sobre.html">Sobre nós</a></li>
+            </ul>
+        </div>
+
+        <div class="institucional">
+            <ul>
+                <li><a href="transparencia.html">Transparência</a></li>
+                <li><a href="termos.html">Termos de uso</a></li>
+                <li><a href="politica.html">Política de privacidade</a></li>
+            </ul>
+        </div>
+
+        <div class="contato">
+            <p>contato@elo.com.br</p>
+            <p>(12) 92348-922067</p>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT DAS NOTIFICAÇÕES -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const filtros = document.querySelectorAll(".filtro");
+            const lista = document.getElementById("listaNotificacoes");
+            const carregarMais = document.getElementById("carregarMais");
+            const marcarTodas = document.getElementById("marcarTodas");
+
+            let filtroAtual = "todos";
+            let notificacoes = [];
+            let pagina = 1;
+            let temMais = false;
+            let carregando = false;
+
+            const icones = {
+                doacao: {
+                    icone: "♡",
+                    classe: "doacao",
+                    categoria: "Doação",
+                    tag: "doacao-tag"
+                },
+                projeto: {
+                    icone: "↗",
+                    classe: "projeto",
+                    categoria: "Projeto",
+                    tag: "projeto-tag"
+                },
+                sistema: {
+                    icone: "•••",
+                    classe: "mensagem",
+                    categoria: "Sistema",
+                    tag: "mensagem-tag"
+                },
+                conta: {
+                    icone: "♙",
+                    classe: "mensagem",
+                    categoria: "Conta",
+                    tag: "mensagem-tag"
+                }
+            };
+
+            function escapar(valor) {
+                return String(valor ?? "").replace(/[&<>"']/g, function (caractere) {
+                    return {
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&#039;"
+                    }[caractere];
+                });
+            }
+
+            function formatarData(data) {
+                if (!data) return "Data indisponível";
+
+                const dataNotificacao = new Date(
+                    String(data).replace(" ", "T")
+                );
+
+                if (Number.isNaN(dataNotificacao.getTime())) {
+                    return "Data indisponível";
+                }
+
+                const diferenca = Math.max(
+                    0,
+                    Date.now() - dataNotificacao.getTime()
+                );
+
+                const minutos = Math.floor(diferenca / 60000);
+                const horas = Math.floor(diferenca / 3600000);
+                const dias = Math.floor(diferenca / 86400000);
+
+                if (minutos < 1) return "Agora mesmo";
+                if (minutos < 60) return `${minutos} min atrás`;
+                if (horas < 24) return `${horas} hora(s) atrás`;
+                if (dias === 1) return "Ontem";
+                if (dias < 7) return `${dias} dias atrás`;
+
+                return dataNotificacao.toLocaleDateString("pt-BR");
+            }
+
+            function obterLinkSeguro(link) {
+                if (!link) return null;
+
+                try {
+                    const url = new URL(link, window.location.href);
+
+                    if (url.origin !== window.location.origin) {
+                        return null;
+                    }
+
+                    return url.href;
+                } catch {
+                    return null;
+                }
+            }
+
+            function criarCard(n) {
+                const tipo = icones[n.tipo] ? n.tipo : "sistema";
+                const visual = icones[tipo];
+                const naoLida = Number(n.lida) === 0;
+
+                return `
+                    <div class="card tipo-${tipo} ${naoLida ? "nao-lida" : ""}"
+                         data-id="${Number(n.id)}"
+                         role="button"
+                         tabindex="0"
+                         aria-label="${escapar(n.titulo)}">
+
+                        <div class="icone ${visual.classe}">
+                            ${visual.icone}
+                        </div>
+
+                        <div class="conteudo">
+                            <h2>${escapar(n.titulo)}</h2>
+                            <p>${escapar(n.mensagem)}</p>
+                        </div>
+
+                        <span class="tempo">
+                            ${escapar(formatarData(n.criado_em))}
+                        </span>
+
+                        <span class="categoria ${visual.tag}">
+                            ${escapar(visual.categoria)}
+                        </span>
+
+                    </div>
+                `;
+            }
+
+            function atualizarContadores(contadores) {
+                document.querySelector('[data-filtro="todos"] span').textContent =
+                    Number(contadores.total || 0);
+
+                document.querySelector('[data-filtro="nao-lidos"] span').textContent =
+                    Number(contadores.nao_lidas || 0);
+
+                document.querySelector('[data-filtro="doacao"] span').textContent =
+                    Number(contadores.doacoes || 0);
+
+                document.querySelector('[data-filtro="projeto"] span').textContent =
+                    Number(contadores.projetos || 0);
+
+                document.querySelector('[data-filtro="sistema"] span').textContent =
+                    Number(contadores.sistema || 0);
+
+                marcarTodas.disabled = Number(contadores.nao_lidas || 0) === 0;
+            }
+
+            function aplicarFiltro() {
+                let filtradas = notificacoes;
+
+                if (filtroAtual === "nao-lidos") {
+                    filtradas = notificacoes.filter(n => Number(n.lida) === 0);
+                } else if (
+                    ["doacao", "projeto", "sistema"].includes(filtroAtual)
+                ) {
+                    filtradas = notificacoes.filter(n => n.tipo === filtroAtual);
+                }
+
+                if (filtradas.length === 0) {
+                    const mensagens = {
+                        todos: "Você ainda não tem notificações.",
+                        "nao-lidos": "Você não tem notificações não lidas.",
+                        doacao: "Você ainda não tem notificações de doações.",
+                        projeto: "Você ainda não tem notificações de projetos.",
+                        sistema: "Você ainda não tem notificações do sistema."
+                    };
+
+                    lista.innerHTML = `<p>${mensagens[filtroAtual]}</p>`;
+                    return;
+                }
+
+                lista.innerHTML = filtradas.map(criarCard).join("");
+            }
+
+            async function carregar(reset = false) {
+                if (carregando) return;
+
+                carregando = true;
+                carregarMais.disabled = true;
+
+                if (reset) {
+                    pagina = 1;
+                    notificacoes = [];
+                    lista.innerHTML = "<p>Carregando notificações...</p>";
+                }
+
+                try {
+                    const resposta = await fetch(
+                        `listar_notificacoes.php?pagina=${pagina}`,
+                        {
+                            credentials: "same-origin",
+                            cache: "no-store",
+                            headers: {
+                                "Accept": "application/json"
+                            }
+                        }
+                    );
+
+                    if (resposta.status === 401) {
+                        window.location.href =
+                            "login.html?voltar=notificacao.html";
+                        return;
+                    }
+
+                    const dados = await resposta.json();
+
+                    if (!resposta.ok || dados.erro) {
+                        throw new Error(
+                            dados.erro || "Erro ao carregar notificações."
+                        );
+                    }
+
+                    if (reset) {
+                        notificacoes = dados.notificacoes || [];
+                    } else {
+                        notificacoes.push(...(dados.notificacoes || []));
+                    }
+
+                    temMais = Boolean(dados.tem_mais);
+
+                    atualizarContadores(dados.contadores || {});
+                    aplicarFiltro();
+
+                    carregarMais.hidden = !temMais;
+                    carregarMais.textContent = "Carregar mais ↓";
+
+                } catch (erro) {
+                    console.error(erro);
+
+                    lista.innerHTML = `
+                        <p>Não foi possível carregar as notificações.</p>
+                        <button type="button" id="tentarNovamente">
+                            Tentar novamente
+                        </button>
+                    `;
+
+                    document.getElementById("tentarNovamente")
+                        .addEventListener("click", () => carregar(true));
+
+                } finally {
+                    carregando = false;
+                    carregarMais.disabled = false;
+                }
+            }
+
+            async function marcarComoLida(id) {
+                const corpo = new URLSearchParams();
+                corpo.set("id", id);
+
+                const resposta = await fetch("marcar_notificacao_lida.php", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded;charset=UTF-8",
+                        "Accept": "application/json"
+                    },
+                    body: corpo.toString()
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.status === 401) {
+                    window.location.href =
+                        "login.html?voltar=notificacao.html";
+                    return false;
+                }
+
+                if (!resposta.ok || dados.erro) {
+                    throw new Error(
+                        dados.erro || "Não foi possível marcar como lida."
+                    );
+                }
+
+                const notificacao = notificacoes.find(
+                    n => Number(n.id) === Number(id)
+                );
+
+                if (notificacao) notificacao.lida = 1;
+
+                return true;
+            }
+
+            async function abrirNotificacao(card) {
+                const id = Number(card.dataset.id);
+
+                const notificacao = notificacoes.find(
+                    n => Number(n.id) === id
+                );
+
+                if (!notificacao) return;
+
+                try {
+                    if (Number(notificacao.lida) === 0) {
+                        const sucesso = await marcarComoLida(id);
+                        if (!sucesso) return;
+                    }
+
+                    atualizarContadoresLocais();
+                    aplicarFiltro();
+
+                    const link = obterLinkSeguro(notificacao.link);
+
+                    if (link) {
+                        window.location.href = link;
+                    }
+
+                } catch (erro) {
+                    console.error(erro);
+                    alert("Não foi possível atualizar esta notificação.");
+                }
+            }
+
+            function atualizarContadoresLocais() {
+                const total = notificacoes.length;
+                const naoLidas = notificacoes.filter(
+                    n => Number(n.lida) === 0
+                ).length;
+
+                const doacoes = notificacoes.filter(
+                    n => n.tipo === "doacao"
+                ).length;
+
+                const projetos = notificacoes.filter(
+                    n => n.tipo === "projeto"
+                ).length;
+
+                const sistema = notificacoes.filter(
+                    n => n.tipo === "sistema"
+                ).length;
+
+                atualizarContadores({
+                    total,
+                    nao_lidas: naoLidas,
+                    doacoes,
+                    projetos,
+                    sistema
+                });
+            }
+
+            filtros.forEach(filtro => {
+                function selecionarFiltro() {
+                    filtros.forEach(item => item.classList.remove("ativo"));
+                    filtro.classList.add("ativo");
+
+                    filtroAtual = filtro.dataset.filtro;
+                    aplicarFiltro();
+                }
+
+                filtro.addEventListener("click", selecionarFiltro);
+
+                filtro.addEventListener("keydown", evento => {
+                    if (evento.key === "Enter" || evento.key === " ") {
+                        evento.preventDefault();
+                        selecionarFiltro();
+                    }
+                });
+            });
+
+            lista.addEventListener("click", evento => {
+                const card = evento.target.closest(".card");
+                if (card) abrirNotificacao(card);
+            });
+
+            lista.addEventListener("keydown", evento => {
+                const card = evento.target.closest(".card");
+
+                if (
+                    card &&
+                    (evento.key === "Enter" || evento.key === " ")
+                ) {
+                    evento.preventDefault();
+                    abrirNotificacao(card);
+                }
+            });
+
+            marcarTodas.addEventListener("click", async () => {
+                marcarTodas.disabled = true;
+
+                try {
+                    const resposta = await fetch(
+                        "marcar_todas_notificacoes.php",
+                        {
+                            method: "POST",
+                            credentials: "same-origin",
+                            headers: {
+                                "Accept": "application/json"
+                            }
+                        }
+                    );
+
+                    if (resposta.status === 401) {
+                        window.location.href =
+                            "login.html?voltar=notificacao.html";
+                        return;
+                    }
+
+                    const dados = await resposta.json();
+
+                    if (!resposta.ok || dados.erro) {
+                        throw new Error(
+                            dados.erro || "Erro ao atualizar notificações."
+                        );
+                    }
+
+                    notificacoes.forEach(n => n.lida = 1);
+
+                    atualizarContadoresLocais();
+                    aplicarFiltro();
+
+                } catch (erro) {
+                    console.error(erro);
+                    alert("Não foi possível marcar todas como lidas.");
+                } finally {
+                    marcarTodas.disabled = false;
+                }
+            });
+
+            carregarMais.addEventListener("click", async () => {
+                if (!temMais || carregando) return;
+
+                pagina++;
+                await carregar(false);
+            });
+
+            carregar(true);
+        });
+    </script>
+
+</body>
+</html>
