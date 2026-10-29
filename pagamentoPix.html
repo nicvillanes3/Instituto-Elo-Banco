@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento via PIX</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Grade de pontos decorativa */
+        .pontos {
+            background-image: radial-gradient(circle at 3px 3px, #3b82f6 3px, transparent 3.3px);
+            background-size: 14px 14px;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen relative overflow-x-hidden flex flex-col justify-between py-6 px-4 md:px-12">
+
+    <div class="absolute top-32 left-[-60px] w-48 h-48 bg-blue-50 rounded-full blur-2xl pointer-events-none -z-10"></div>
+    <div class="absolute bottom-40 left-[-40px] w-28 h-28 bg-yellow-400 rounded-full pointer-events-none -z-10"></div>
+    <div class="absolute bottom-56 left-28 w-3 h-3 bg-blue-600 rounded-full pointer-events-none -z-10"></div>
+
+    <div class="pontos absolute top-32 left-6 w-[46px] h-[62px] opacity-30 pointer-events-none -z-10"></div>
+    <div class="pontos absolute top-0 right-6 w-[46px] h-[62px] opacity-30 pointer-events-none -z-10"></div>
+    <div class="pontos absolute bottom-48 right-6 w-[46px] h-[48px] opacity-30 pointer-events-none -z-10"></div>
+
+    <div class="absolute top-20 right-[-30px] w-72 h-72 bg-yellow-400 rounded-full pointer-events-none -z-10"></div>
+    <div class="absolute top-20 right-28 w-3 h-3 bg-blue-600 rounded-full pointer-events-none -z-10"></div>
+    <div class="absolute bottom-28 right-[-40px] w-48 h-48 bg-blue-50 rounded-full blur-xl pointer-events-none -z-10"></div>
+
+    <div class="max-w-xl mx-auto w-full">
+
+        <div class="mb-6">
+            <a href="projeto.html" data-voltar class="inline-flex items-center text-blue-600 font-semibold text-sm hover:underline gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Voltar
+            </a>
+        </div>
+
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Pagamento via PIX</h1>
+
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 md:p-8 text-center mb-5">
+            <p class="text-xs md:text-sm text-gray-500 mb-6">Escaneie o QR code abaixo com o<br>app do banco</p>
+
+            <div class="flex justify-center mb-6">
+                <div class="p-3 bg-white border border-gray-200 rounded-xl inline-block shadow-xs">
+                    <img id="qrCode" src="" alt="QR Code PIX" class="w-40 h-40 object-contain">
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-400 mb-2">Ou copie o código PIX</p>
+
+            <div class="relative flex items-center max-w-md mx-auto">
+                <input type="text" id="pixCode" readonly value="" class="w-full text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-xl py-3.5 pl-3.5 pr-20 focus:outline-none truncate select-all">
+                <button onclick="copyPixCode()" id="copyBtn" class="absolute right-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-blue-600 font-medium text-xs px-3 py-2 rounded-lg transition-colors flex items-center gap-1 shadow-2xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span id="copyText">Copiar</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-4 md:p-5 flex items-start gap-3.5 mb-5 shadow-2xs">
+            <div class="text-blue-700 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div>
+                <h3 id="statusTitulo" class="text-blue-900 font-semibold text-sm mb-0.5">Aguardando pagamento</h3>
+                <p id="statusTexto1" class="text-xs text-blue-800/80 leading-relaxed">Você tem até 30 minutos para pagar</p>
+                <p id="statusTexto2" class="text-xs text-blue-800/80 leading-relaxed">Após o pagamento sua doação será confirmada automaticamente</p>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 md:p-6 mb-8">
+            <h3 class="font-bold text-gray-900 text-sm mb-4">Resumo da doação</h3>
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-gray-400 font-normal">Projeto</span>
+                    <span class="text-gray-600 font-medium" data-campo="projeto"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400 font-normal">Data</span>
+                    <span class="text-gray-600 font-medium" data-campo="data"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400 font-normal">Valor</span>
+                    <span class="text-gray-600 font-medium" data-campo="valor"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400 font-normal">Forma de pagamento</span>
+                    <span class="text-gray-600 font-medium">PIX</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="text-center pb-2">
+        <p class="text-xs text-gray-500 inline-flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            Precisa de ajuda? Fale com nosso <a href="#" class="text-blue-600 font-medium hover:underline">suporte</a>
+        </p>
+    </div>
+
+    <script src="dadosProjetos.js"></script>
+    <script src="pagamento.js"></script>
+    
+<script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        const parametros = new URLSearchParams(window.location.search);
+        const doacaoId = parametros.get("doacao_id");
+
+        const campoProjeto = document.querySelector('[data-campo="projeto"]');
+        const campoData = document.querySelector('[data-campo="data"]');
+        const campoValor = document.querySelector('[data-campo="valor"]');
+
+        function mostrarErro(mensagem) {
+            if (campoProjeto) campoProjeto.textContent = mensagem;
+            if (campoData) campoData.textContent = "—";
+            if (campoValor) campoValor.textContent = "—";
+        }
+
+        if (!doacaoId) {
+            mostrarErro("Doação não identificada");
+            return;
+        }
+
+        try {
+            const resposta = await fetch(
+                "buscar_dados_doacao.php?doacao_id=" +
+                encodeURIComponent(doacaoId),
+                {
+                    credentials: "same-origin",
+                    headers: { "Accept": "application/json" }
+                }
+            );
+
+            const resultado = await resposta.json();
+
+            if (!resposta.ok || !resultado.sucesso) {
+                throw new Error(
+                    resultado.mensagem || "Não foi possível carregar a doação."
+                );
+            }
+
+            const doacao = resultado.doacao;
+
+            if (doacao.metodo_pagamento !== "pix") {
+                throw new Error("Esta doação não foi registrada para PIX.");
+            }
+
+            if (campoProjeto) {
+                campoProjeto.textContent = doacao.projeto_titulo;
+            }
+
+            if (campoData) {
+                campoData.textContent = new Date().toLocaleDateString("pt-BR");
+            }
+
+            if (campoValor) {
+                campoValor.textContent = Number(doacao.valor).toLocaleString(
+                    "pt-BR",
+                    {
+                        style: "currency",
+                        currency: "BRL"
+                    }
+                );
+            }
+
+        } catch (erro) {
+            console.error("Erro ao carregar a doação:", erro);
+            mostrarErro(erro.message || "Erro ao carregar o resumo.");
+        }
+    });
+
+    // O código abaixo é apenas demonstrativo.
+    // Não representa uma cobrança PIX real nem confirma pagamento.
+    const codigoPix = "CODIGO_PIX_DE_EXEMPLO";
+
+    document.getElementById("pixCode").value = codigoPix;
+
+    document.getElementById("qrCode").alt =
+        "QR Code demonstrativo. PIX real ainda não configurado.";
+
+    async function copyPixCode() {
+        const pixInput = document.getElementById("pixCode");
+        const copyText = document.getElementById("copyText");
+
+        try {
+            await navigator.clipboard.writeText(pixInput.value);
+            copyText.textContent = "Copiado!";
+
+            setTimeout(() => {
+                copyText.textContent = "Copiar";
+            }, 2000);
+        } catch (erro) {
+            pixInput.focus();
+            pixInput.select();
+            copyText.textContent = "Selecione e copie";
+        }
+    }
+</script>
+
+</body>
+</html>

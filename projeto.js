@@ -1,490 +1,480 @@
-document.addEventListener("DOMContentLoaded", async function () {
-    const params = new URLSearchParams(window.location.search);
-    const id = Number(params.get("id"));
 
-    const $ = seletor => document.getElementById(seletor);
-    const conteudo = $("conteudo");
-    const naoEncontrado = $("naoEncontrado");
-    const breadcrumb = document.querySelector(".breadcrumb");
+document.addEventListener("DOMContentLoaded", () => {
+    // =====================================================
+    // CONFIGURAÇÕES
+    // =====================================================
 
-    const moeda = valor =>
-        Number(valor || 0).toLocaleString("pt-BR", {
+    const API_PROJETO = "buscar_projeto.php";
+    const API_DOACAO = "processar_doacao.php";
+
+    const paginasPagamento = {
+        pix: "pagamentoPix.html",
+        cartao: "pagamentoCartao.html",
+        boleto: "pagamentoBoleto.html"
+    };
+
+    const parametros = new URLSearchParams(window.location.search);
+    const projetoId = parametros.get("id");
+
+    let projetoAtual = null;
+    let valorSelecionado = 50;
+    let metodoSelecionado = "pix";
+    let enviandoDoacao = false;
+
+    const btnDoar = document.getElementById("btnDoar");
+    const valorCustom = document.getElementById("valorCustom");
+    const retorno = document.getElementById("retorno");
+
+    // =====================================================
+    // FUNÇÕES AUXILIARES
+    // =====================================================
+
+    function dinheiro(valor) {
+        return Number(valor || 0).toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL"
         });
-
-    function mostrarNaoEncontrado() {
-        if (conteudo) conteudo.hidden = true;
-        if (breadcrumb) breadcrumb.hidden = true;
-        if (naoEncontrado) naoEncontrado.hidden = false;
-        document.title = "Projeto não encontrado | Instituto Elo";
     }
 
-    if (!Number.isInteger(id) || id < 1) {
-        mostrarNaoEncontrado();
-        return;
-    }
-
-    let projeto;
-
-    try {
-        const resposta = await fetch(
-            `buscar_projeto.php?id=${encodeURIComponent(id)}`
-        );
-
-        if (!resposta.ok) {
-            throw new Error("Não foi possível encontrar o projeto.");
+    function mostrarMensagem(mensagem, erro = false) {
+        if (!retorno) {
+            alert(mensagem);
+            return;
         }
 
-        projeto = await resposta.json();
+        retorno.textContent = mensagem;
+        retorno.hidden = false;
+        retorno.style.color = erro ? "#c62828" : "#167444";
+    }
 
-        if (projeto.erro || !projeto.id) {
-            throw new Error(projeto.erro || "Projeto não encontrado.");
+    function limparMensagem() {
+        if (retorno) {
+            retorno.textContent = "";
+            retorno.hidden = true;
         }
-    } catch (erro) {
-        console.error("Erro ao carregar o projeto:", erro);
-        mostrarNaoEncontrado();
-        return;
     }
 
-    if (conteudo) conteudo.hidden = false;
-    if (naoEncontrado) naoEncontrado.hidden = true;
-
-    document.title = `${projeto.titulo} | Instituto Elo`;
-
-    const arrecadado = Number(projeto.arrecadado || 0);
-    const meta = Number(projeto.meta || 0);
-    const porcentagem = meta > 0
-        ? Math.min(100, Math.round((arrecadado / meta) * 100))
-        : 0;
-
-    const dias = Math.max(0, Number(projeto.dias || 0));
-
-    if ($("bcCategoria")) $("bcCategoria").textContent = projeto.categoria;
-    if ($("bcTitulo")) $("bcTitulo").textContent = projeto.titulo;
-
-    if ($("titulo")) $("titulo").textContent = projeto.titulo;
-    if ($("tag")) $("tag").textContent = projeto.categoria;
-    if ($("descricao")) $("descricao").textContent = projeto.desc || "";
-    if ($("local")) $("local").textContent = projeto.local || "Brasil";
-    if ($("nivel")) $("nivel").textContent = projeto.nivel || "Instituição de ensino";
-
-    if ($("arrecadado")) $("arrecadado").textContent = moeda(arrecadado);
-    if ($("meta")) $("meta").textContent = moeda(meta);
-    if ($("pct")) $("pct").textContent = `${porcentagem}%`;
-    if ($("dias")) $("dias").textContent = dias;
-    if ($("prazoMeta")) {
-        $("prazoMeta").textContent = dias === 1
-            ? "Falta 1 dia para o encerramento"
-            : `Faltam ${dias} dias para o encerramento`;
+    function obterSessao() {
+        try {
+            return JSON.parse(localStorage.getItem("eloSessao")) || null;
+        } catch {
+            return null;
+        }
     }
 
-    if ($("apoiadores")) {
-        $("apoiadores").textContent = Number(projeto.apoiadores || 0);
+    function escaparHTML(texto) {
+        return String(texto ?? "").replace(/[&<>"']/g, caractere => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[caractere]);
     }
 
-    if ($("barra")) {
-        $("barra").style.width = `${porcentagem}%`;
-        $("barra").setAttribute("role", "progressbar");
-        $("barra").setAttribute("aria-valuenow", porcentagem);
-        $("barra").setAttribute("aria-valuemin", "0");
-        $("barra").setAttribute("aria-valuemax", "100");
-    }
+    // =====================================================
+    // CARREGAR PROJETO
+    // =====================================================
 
-    if ($("capa")) {
-        const capa = $("capa");
-
-        if (projeto.img) {
-            capa.style.backgroundImage = `url("${projeto.img}")`;
-            capa.style.backgroundSize = "cover";
-            capa.style.backgroundPosition = "center";
-        } else {
-            capa.style.backgroundImage = "none";
+    async function carregarProjeto() {
+        if (!projetoId) {
+            mostrarMensagem("Projeto não identificado.", true);
+            return;
         }
 
-        capa.style.backgroundColor = projeto.cor || "#E8F1FF";
+        try {
+            const resposta = await fetch(
+                `${API_PROJETO}?id=${encodeURIComponent(projetoId)}`,
+                { credentials: "same-origin" }
+            );
+
+            if (!resposta.ok) {
+                throw new Error("Não foi possível carregar o projeto.");
+            }
+
+            const dados = await resposta.json();
+
+            if (dados.sucesso === false || dados.erro) {
+                throw new Error(dados.mensagem || dados.erro ||
+                    "Projeto não encontrado.");
+            }
+
+            projetoAtual = dados.projeto || dados;
+
+            renderizarProjeto(projetoAtual);
+        } catch (erro) {
+            console.error("Erro ao carregar projeto:", erro);
+            mostrarMensagem(
+                erro.message || "Erro ao carregar o projeto.",
+                true
+            );
+        }
     }
 
-    if ($("textoSobre")) {
-        const sobre = Array.isArray(projeto.sobre)
-            ? projeto.sobre
-            : [projeto.desc || ""];
+    function renderizarProjeto(projeto) {
+        // Atualiza os elementos que tenham estes IDs.
+        const campos = {
+            tituloProjeto: projeto.titulo,
+            descricaoProjeto: projeto.descricao,
+            categoriaProjeto: projeto.categoria,
+            valorArrecadado: dinheiro(projeto.valor_arrecadado),
+            metaProjeto: dinheiro(projeto.meta_valor),
+            nomeCriador: projeto.nome_criador || projeto.criador_nome
+        };
 
-        $("textoSobre").replaceChildren();
+        Object.entries(campos).forEach(([id, valor]) => {
+            const elemento = document.getElementById(id);
 
-        sobre.forEach(paragrafo => {
-            const p = document.createElement("p");
-            p.textContent = paragrafo;
-            $("textoSobre").appendChild(p);
+            if (elemento && valor !== undefined && valor !== null) {
+                elemento.textContent = valor;
+            }
+        });
+
+        const titulo = document.querySelector("[data-projeto-titulo]");
+        if (titulo) titulo.textContent = projeto.titulo || "";
+
+        const descricao = document.querySelector("[data-projeto-descricao]");
+        if (descricao) descricao.textContent = projeto.descricao || "";
+
+        const imagem = document.querySelector("[data-projeto-imagem]");
+        if (imagem && projeto.imagem) {
+            imagem.src = projeto.imagem;
+            imagem.alt = projeto.titulo || "Imagem do projeto";
+        }
+
+        const arrecadado = Number(projeto.valor_arrecadado || 0);
+        const meta = Number(projeto.meta_valor || 0);
+        const porcentagem = meta > 0
+            ? Math.min((arrecadado / meta) * 100, 100)
+            : 0;
+
+        document.querySelectorAll("[data-progresso]").forEach(elemento => {
+            elemento.style.width = `${porcentagem}%`;
+        });
+
+        document.querySelectorAll("[data-progresso-texto]").forEach(elemento => {
+            elemento.textContent = `${Math.round(porcentagem)}%`;
         });
     }
 
-    if ($("destaques")) {
-        $("destaques").replaceChildren();
-
-        const destaques = Array.isArray(projeto.destaques)
-            ? projeto.destaques
-            : [];
-
-        destaques.forEach(destaque => {
-            const item = document.createElement("div");
-            item.className = "destaque-item";
-            item.textContent = typeof destaque === "string"
-                ? destaque
-                : destaque.titulo || destaque.descricao || "";
-
-            $("destaques").appendChild(item);
-        });
-    }
-
-    const atualizacoes = Array.isArray(projeto.atualizacoes)
-        ? projeto.atualizacoes
-        : [];
-
-    if ($("contAtualizacoes")) {
-        $("contAtualizacoes").textContent = atualizacoes.length;
-    }
-
-    if ($("listaAtualizacoes")) {
-        $("listaAtualizacoes").replaceChildren();
-
-        if (atualizacoes.length === 0) {
-            const mensagem = document.createElement("p");
-            mensagem.className = "sem-conteudo";
-            mensagem.textContent = "Este projeto ainda não possui atualizações.";
-            $("listaAtualizacoes").appendChild(mensagem);
-        } else {
-            atualizacoes.forEach(atualizacao => {
-                const item = document.createElement("article");
-                item.className = "atualizacao-item";
-
-                const titulo = document.createElement("h3");
-                titulo.textContent = typeof atualizacao === "string"
-                    ? atualizacao
-                    : atualizacao.titulo || "Atualização do projeto";
-
-                item.appendChild(titulo);
-
-                if (typeof atualizacao === "object") {
-                    if (atualizacao.data) {
-                        const data = document.createElement("small");
-                        data.textContent = atualizacao.data;
-                        item.appendChild(data);
-                    }
-
-                    if (atualizacao.texto || atualizacao.descricao) {
-                        const texto = document.createElement("p");
-                        texto.textContent = atualizacao.texto || atualizacao.descricao;
-                        item.appendChild(texto);
-                    }
-                }
-
-                $("listaAtualizacoes").appendChild(item);
-            });
-        }
-    }
-
-    if ($("atualizacaoRecente")) {
-        $("atualizacaoRecente").textContent = atualizacoes.length
-            ? (typeof atualizacoes[0] === "string"
-                ? atualizacoes[0]
-                : atualizacoes[0].titulo || atualizacoes[0].texto || "Nova atualização")
-            : "Ainda não há atualizações para este projeto.";
-    }
-
-    if ($("listaApoiadores")) {
-        $("listaApoiadores").replaceChildren();
-
-        const mensagem = document.createElement("p");
-        mensagem.className = "sem-conteudo";
-        mensagem.textContent = "Os apoiadores aparecerão aqui quando houver doações registradas.";
-        $("listaApoiadores").appendChild(mensagem);
-    }
-
-    if ($("contApoiadores")) {
-        $("contApoiadores").textContent = Number(projeto.apoiadores || 0);
-    }
+    // =====================================================
+    // ABAS DO PROJETO
+    // =====================================================
 
     const botoesAbas = document.querySelectorAll("[data-aba]");
     const paineisAbas = document.querySelectorAll("[data-conteudo-aba]");
 
     botoesAbas.forEach(botao => {
-        botao.addEventListener("click", function () {
-            const abaSelecionada = botao.dataset.aba;
+        botao.addEventListener("click", () => {
+            const aba = botao.dataset.aba;
 
             botoesAbas.forEach(item => {
                 item.classList.toggle("ativo", item === botao);
-                item.setAttribute("aria-selected", item === botao ? "true" : "false");
             });
 
             paineisAbas.forEach(painel => {
-                painel.hidden = painel.dataset.conteudoAba !== abaSelecionada;
+                painel.hidden = painel.dataset.conteudoAba !== aba;
             });
         });
     });
 
-    const usuario = (() => {
-        try {
-            return JSON.parse(localStorage.getItem("eloSessao") || "null");
-        } catch {
-            return null;
-        }
-    })();
-
-    const chaveFavoritos = "eloFavoritos";
+    // =====================================================
+    // FAVORITOS
+    // =====================================================
 
     function obterFavoritos() {
         try {
-            const favoritos = JSON.parse(localStorage.getItem(chaveFavoritos) || "[]");
-            return Array.isArray(favoritos) ? favoritos : [];
+            const dados = JSON.parse(localStorage.getItem("eloFavoritos"));
+            return Array.isArray(dados) ? dados : [];
         } catch {
             return [];
         }
     }
 
-    function atualizarBotaoFavorito() {
-        const botao = $("btnFavorito");
-        if (!botao) return;
+    function atualizarBotoesFavoritos() {
+        if (!projetoId) return;
 
-        const favoritos = obterFavoritos();
-        const favoritado = favoritos.some(item => Number(item) === id);
+        const favoritos = obterFavoritos().map(String);
+        const salvo = favoritos.includes(String(projetoId));
 
-        botao.classList.toggle("ativo", favoritado);
-        botao.setAttribute("aria-pressed", favoritado ? "true" : "false");
-        botao.setAttribute(
-            "aria-label",
-            favoritado ? "Remover dos favoritos" : "Adicionar aos favoritos"
-        );
-
-        const texto = botao.querySelector("[data-texto-favorito]");
-        if (texto) {
-            texto.textContent = favoritado
-                ? "Adicionado aos favoritos"
-                : "Adicionar aos favoritos";
-        }
-    }
-
-    if ($("btnFavorito")) {
-        atualizarBotaoFavorito();
-
-        $("btnFavorito").addEventListener("click", function () {
-            const favoritos = obterFavoritos();
-            const jaFavoritado = favoritos.some(item => Number(item) === id);
-
-            const novosFavoritos = jaFavoritado
-                ? favoritos.filter(item => Number(item) !== id)
-                : [...favoritos, id];
-
-            localStorage.setItem(chaveFavoritos, JSON.stringify(novosFavoritos));
-            atualizarBotaoFavorito();
+        document.querySelectorAll(
+            "#btnFavorito, .btn-favorito, [data-favorito]"
+        ).forEach(botao => {
+            botao.classList.toggle("ativo", salvo);
+            botao.setAttribute("aria-pressed", String(salvo));
         });
     }
 
-    if ($("btnCompartilhar")) {
-        $("btnCompartilhar").addEventListener("click", async function () {
-            const dadosCompartilhamento = {
-                title: projeto.titulo,
-                text: `Conheça este projeto no Instituto Elo: ${projeto.titulo}`,
+    document.querySelectorAll(
+        "#btnFavorito, .btn-favorito, [data-favorito]"
+    ).forEach(botao => {
+        botao.addEventListener("click", () => {
+            if (!projetoId) return;
+
+            let favoritos = obterFavoritos().map(String);
+            const id = String(projetoId);
+
+            if (favoritos.includes(id)) {
+                favoritos = favoritos.filter(item => item !== id);
+            } else {
+                favoritos.push(id);
+            }
+
+            localStorage.setItem(
+                "eloFavoritos",
+                JSON.stringify(favoritos)
+            );
+
+            atualizarBotoesFavoritos();
+        });
+    });
+
+    atualizarBotoesFavoritos();
+
+    // =====================================================
+    // COMPARTILHAR PROJETO
+    // =====================================================
+
+    document.querySelectorAll(
+        "#btnCompartilhar, .btn-compartilhar, [data-compartilhar]"
+    ).forEach(botao => {
+        botao.addEventListener("click", async () => {
+            const dados = {
+                title: projetoAtual?.titulo || document.title,
+                text: "Conheça este projeto no Instituto Elo!",
                 url: window.location.href
             };
 
             try {
                 if (navigator.share) {
-                    await navigator.share(dadosCompartilhamento);
-                } else if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(window.location.href);
-                    alert("Link do projeto copiado!");
+                    await navigator.share(dados);
+                } else if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(dados.url);
+                    mostrarMensagem("Link do projeto copiado!");
                 } else {
-                    const campo = document.createElement("textarea");
-                    campo.value = window.location.href;
-                    campo.style.position = "fixed";
-                    campo.style.opacity = "0";
-                    document.body.appendChild(campo);
-                    campo.select();
-
-                    const copiado = document.execCommand("copy");
-                    campo.remove();
-
-                    alert(copiado
-                        ? "Link do projeto copiado!"
-                        : `Copie o link: ${window.location.href}`);
+                    window.prompt("Copie o link do projeto:", dados.url);
                 }
             } catch (erro) {
                 if (erro.name !== "AbortError") {
-                    alert("Não foi possível compartilhar o projeto.");
+                    console.error("Erro ao compartilhar:", erro);
                 }
             }
-        });
-    }
-
-    let valorSelecionado = 0;
-
-    const botoesValores = document.querySelectorAll(
-        "[data-valor], .valor-opcao, .valor-btn"
-    );
-
-    function selecionarValor(botao, valor) {
-        if (!Number.isFinite(valor) || valor <= 0) return;
-
-        valorSelecionado = valor;
-
-        botoesValores.forEach(item => {
-            item.classList.toggle("ativo", item === botao);
-            item.setAttribute("aria-pressed", item === botao ? "true" : "false");
-        });
-
-        if ($("valorCustom")) {
-            $("valorCustom").value = valor;
-        }
-
-        if ($("retorno")) {
-            $("retorno").textContent = `Valor da contribuição: ${moeda(valor)}`;
-        }
-    }
-
-    botoesValores.forEach(botao => {
-        const valor = Number(
-            botao.dataset.valor ||
-            botao.value ||
-            botao.textContent.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")
-        );
-
-        botao.addEventListener("click", function () {
-            selecionarValor(botao, valor);
         });
     });
 
-    if ($("valorCustom")) {
-        $("valorCustom").addEventListener("input", function () {
-            const valor = Number(
-                $("valorCustom").value.replace(",", ".")
-            );
+    // =====================================================
+    // SELEÇÃO DO VALOR DA DOAÇÃO
+    // =====================================================
 
-            valorSelecionado = Number.isFinite(valor) ? valor : 0;
+    function lerValorDigitado() {
+        if (!valorCustom) return 0;
 
-            botoesValores.forEach(botao => {
-                const valorBotao = Number(
-                    botao.dataset.valor ||
-                    botao.value ||
-                    botao.textContent.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")
-                );
+        // Aceita valores como 50, 50,00 ou 1.250,50.
+        let texto = valorCustom.value.trim()
+            .replace(/\s/g, "")
+            .replace(/^R\$/i, "");
 
-                botao.classList.toggle(
-                    "ativo",
-                    valorSelecionado > 0 && valorBotao === valorSelecionado
-                );
-            });
+        if (!texto) return 0;
 
-            if ($("retorno")) {
-                $("retorno").textContent = valorSelecionado > 0
-                    ? `Valor da contribuição: ${moeda(valorSelecionado)}`
-                    : "";
-            }
-        });
-    }
-
-    function obterMetodoPagamento() {
-        const selecionado = document.querySelector(
-            'input[name="metodo"]:checked, input[name="pagamento"]:checked, input[name="metodoPagamento"]:checked'
-        );
-
-        if (selecionado) {
-            return selecionado.value.toLowerCase();
+        if (texto.includes(",")) {
+            texto = texto.replace(/\./g, "").replace(",", ".");
         }
 
-        const ativo = document.querySelector(
-            "[data-metodo].ativo, .metodo-pagamento.ativo"
-        );
+        const valor = Number(texto);
 
-        return ativo
-            ? (ativo.dataset.metodo || ativo.dataset.valor || ativo.textContent).toLowerCase()
-            : "pix";
+        return Number.isFinite(valor) ? valor : 0;
     }
 
-    if ($("metodos")) {
-        const opcoesMetodo = $("metodos").querySelectorAll(
-            "[data-metodo], input[type='radio']"
-        );
+    function atualizarBotaoDoar() {
+        if (!btnDoar) return;
 
-        opcoesMetodo.forEach(opcao => {
-            opcao.addEventListener("change", function () {
-                if (opcao.type === "radio") {
-                    opcoesMetodo.forEach(item => {
-                        if (item.type !== "radio") {
-                            item.classList.remove("ativo");
-                        }
-                    });
-                    return;
-                }
+        const nomes = {
+            pix: "PIX",
+            cartao: "cartão",
+            boleto: "boleto"
+        };
 
-                opcoesMetodo.forEach(item => item.classList.remove("ativo"));
-                opcao.classList.add("ativo");
+        btnDoar.textContent = `Doar agora com ${nomes[metodoSelecionado]}`;
+    }
+
+    function selecionarValor(botao) {
+        document.querySelectorAll(".valor").forEach(item => {
+            item.classList.toggle("ativo", item === botao);
+        });
+
+        if (botao.dataset.valor === "outro") {
+            valorSelecionado = lerValorDigitado();
+
+            if (valorCustom) valorCustom.focus();
+        } else {
+            valorSelecionado = Number(botao.dataset.valor);
+
+            if (valorCustom) valorCustom.value = "";
+        }
+
+        limparMensagem();
+    }
+
+    document.querySelectorAll(".valor[data-valor]").forEach(botao => {
+        botao.addEventListener("click", () => selecionarValor(botao));
+    });
+
+    if (valorCustom) {
+        valorCustom.addEventListener("input", () => {
+            document.querySelectorAll(".valor").forEach(botao => {
+                botao.classList.toggle(
+                    "ativo",
+                    botao.dataset.valor === "outro"
+                );
             });
 
-            if (opcao.dataset.metodo) {
-                opcao.addEventListener("click", function () {
-                    opcoesMetodo.forEach(item => item.classList.remove("ativo"));
-                    opcao.classList.add("ativo");
-                });
-            }
+            valorSelecionado = lerValorDigitado();
+            limparMensagem();
         });
     }
 
-    if ($("btnDoar")) {
-        $("btnDoar").addEventListener("click", function () {
-            let valor = valorSelecionado;
+    // =====================================================
+    // SELEÇÃO DO MÉTODO DE PAGAMENTO
+    // =====================================================
 
-            if ($("valorCustom")) {
-                const valorDigitado = Number(
-                    $("valorCustom").value.replace(",", ".")
+    document.querySelectorAll(".metodo[data-metodo]").forEach(botao => {
+        botao.addEventListener("click", () => {
+            const metodo = botao.dataset.metodo;
+
+            if (!paginasPagamento[metodo]) return;
+
+            metodoSelecionado = metodo;
+
+            document.querySelectorAll(".metodo").forEach(item => {
+                item.classList.toggle("ativo", item === botao);
+            });
+
+            atualizarBotaoDoar();
+            limparMensagem();
+        });
+    });
+
+    atualizarBotaoDoar();
+
+    // =====================================================
+    // DOAÇÃO: UM ÚNICO EVENTO DE CLIQUE
+    // =====================================================
+
+    if (btnDoar) {
+        btnDoar.addEventListener("click", async evento => {
+            evento.preventDefault();
+
+            if (enviandoDoacao) return;
+
+            limparMensagem();
+
+            const sessao = obterSessao();
+
+            if (!sessao) {
+                mostrarMensagem(
+                    "Entre na sua conta para realizar uma doação.",
+                    true
                 );
-
-                if (valorDigitado > 0) {
-                    valor = valorDigitado;
-                }
+                return;
             }
+
+            if (!projetoId || !/^\d+$/.test(projetoId)) {
+                mostrarMensagem("Projeto não identificado.", true);
+                return;
+            }
+
+            const valor = valorCustom && valorCustom.value.trim()
+                ? lerValorDigitado()
+                : valorSelecionado;
 
             if (!Number.isFinite(valor) || valor <= 0) {
-                if ($("retorno")) {
-                    $("retorno").textContent = "Escolha ou informe um valor válido para contribuir.";
-                } else {
-                    alert("Escolha ou informe um valor válido para contribuir.");
-                }
+                mostrarMensagem(
+                    "Selecione ou digite um valor válido para doar.",
+                    true
+                );
                 return;
             }
 
-            if (!usuario) {
-                const voltar = encodeURIComponent(
-                    `projeto.html?id=${id}`
+            if (valor > 1000000) {
+                mostrarMensagem(
+                    "O valor máximo permitido é R$ 1.000.000,00.",
+                    true
+                );
+                return;
+            }
+
+            if (!paginasPagamento[metodoSelecionado]) {
+                mostrarMensagem("Selecione um método de pagamento.", true);
+                return;
+            }
+
+            enviandoDoacao = true;
+            btnDoar.disabled = true;
+            btnDoar.textContent = "Preparando doação...";
+
+            try {
+                const resposta = await fetch(API_DOACAO, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        projeto_id: Number(projetoId),
+                        valor: valor,
+                        metodo_pagamento: metodoSelecionado
+                    })
+                });
+
+                const resultado = await resposta.json();
+
+                if (!resposta.ok || !resultado.sucesso) {
+                    throw new Error(
+                        resultado.mensagem ||
+                        resultado.erro ||
+                        "Não foi possível registrar a doação."
+                    );
+                }
+
+                // O ID deve vir do PHP após salvar a doação.
+                const doacaoId = resultado.doacao_id;
+
+                if (!doacaoId || !/^\d+$/.test(String(doacaoId))) {
+                    throw new Error(
+                        "O servidor não retornou um ID de doação válido."
+                    );
+                }
+
+                // Redireciona usando doacao_id, nunca id do projeto.
+                const destino = new URL(
+                    paginasPagamento[metodoSelecionado],
+                    window.location.href
                 );
 
-                window.location.href = `login.html?voltar=${voltar}`;
-                return;
+                destino.searchParams.set("doacao_id", String(doacaoId));
+
+                window.location.assign(destino.href);
+
+            } catch (erro) {
+                console.error("Erro ao registrar doação:", erro);
+
+                mostrarMensagem(
+                    erro.message ||
+                    "Erro ao iniciar a doação. Tente novamente.",
+                    true
+                );
+
+                enviandoDoacao = false;
+                btnDoar.disabled = false;
+                atualizarBotaoDoar();
             }
-
-            const metodo = obterMetodoPagamento();
-            let paginaPagamento = "pagamentoPix.html";
-
-            if (
-                metodo.includes("cart") ||
-                metodo.includes("crédito") ||
-                metodo.includes("credito")
-            ) {
-                paginaPagamento = "pagamentoCartao.html";
-            } else if (metodo.includes("boleto")) {
-                paginaPagamento = "pagamentoBoleto.html";
-            } else if (
-                metodo.includes("pix") ||
-                metodo === ""
-            ) {
-                paginaPagamento = "pagamentoPix.html";
-            }
-
-            const destino = new URL(paginaPagamento, window.location.href);
-            destino.searchParams.set("id", String(id));
-            destino.searchParams.set("valor", valor.toFixed(2));
-
-            window.location.href = destino.href;
         });
     }
+
+    // =====================================================
+    // INICIALIZAÇÃO
+    // =====================================================
+
+    carregarProjeto();
 });
