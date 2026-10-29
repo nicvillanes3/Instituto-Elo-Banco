@@ -104,10 +104,24 @@
         },
 
         // Encerra a sessão e volta para a página inicial
-sair() {
-    localStorage.removeItem("eloSessao");
-    window.location.replace("logout.php");
-},
+        sair() {
+            // Remove os dados que mantêm o usuário logado
+            localStorage.removeItem(CHAVE_SESSAO);
+            localStorage.removeItem("eloPerfil");
+            localStorage.removeItem("eloFotoPerfil");
+
+            // Avisa outras abas que a sessão foi encerrada
+            window.dispatchEvent(
+                new StorageEvent("storage", {
+                    key: CHAVE_SESSAO,
+                    oldValue: null,
+                    newValue: null
+                })
+            );
+
+            // Encerra também a sessão do servidor PHP
+            window.location.replace("logout.php");
+        },
 
         // Define para onde o usuário deve ir após o login
         destino() {
@@ -131,7 +145,7 @@ sair() {
         }
     };
 
-    // Páginas disponíveis para outros scripts
+    // Disponibiliza informações para outros scripts
     Auth.paginaInicial = PAGINA_INICIAL;
     Auth.paginaExplorar = PAGINA_EXPLORAR;
 
@@ -165,7 +179,7 @@ sair() {
             pagina => pagina.toLowerCase()
         );
 
-        // Redireciona visitantes que tentam abrir páginas privadas
+        // Redireciona visitantes para o login
         if (
             paginasPrivadas.includes(paginaAtual) &&
             !Auth.estaLogado()
@@ -191,7 +205,6 @@ sair() {
     // =====================================================
 
     function htmlNavbar(logado) {
-
         const linkEntrar = !logado
             ? `
                 <li>
@@ -338,7 +351,6 @@ sair() {
         }
 
         botao.addEventListener("click", function () {
-
             if (!Auth.estaLogado()) {
                 window.location.href =
                     PAGINA_LOGIN +
@@ -378,7 +390,7 @@ sair() {
 
         const paginaAtual = obterNomePagina();
 
-        // Nas páginas de visitante, sempre mostra "Entrar"
+        // Nas páginas de visitante, mostra "Entrar"
         const estaNaPaginaVisitante =
             PAGINAS_VISITANTES.includes(paginaAtual);
 
@@ -412,12 +424,10 @@ sair() {
     }
 
     // =====================================================
-    // ATUALIZAR NAVBAR QUANDO A SESSÃO MUDAR
-    // EM OUTRA ABA DO NAVEGADOR
+    // ATUALIZAR NAVBAR QUANDO A SESSÃO MUDAR EM OUTRA ABA
     // =====================================================
 
     window.addEventListener("storage", function (evento) {
-
         if (evento.key !== CHAVE_SESSAO) {
             return;
         }

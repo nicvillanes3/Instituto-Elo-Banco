@@ -20,18 +20,18 @@ if (empty($_SESSION['usuario_id'])) {
 require_once 'conexao.php';
 
 try {
-    $sql = "SELECT id, nome, email, foto_perfil, biografia, tipo, criado_em
+    $sql = "SELECT id, nome, email, foto_perfil, biografia,
+                   tipo, criado_em
             FROM usuarios
             WHERE id = :id AND ativo = 1
             LIMIT 1";
 
     $consulta = $pdo->prepare($sql);
-
     $consulta->execute([
-        ':id' => $_SESSION['usuario_id']
+        ':id' => (int) $_SESSION['usuario_id']
     ]);
 
-    $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
+    $usuario = $consulta->fetch();
 
     if (!$usuario) {
         responder(404, [
@@ -40,7 +40,7 @@ try {
     }
 
     responder(200, [
-        'id' => $usuario['id'],
+        'id' => (int) $usuario['id'],
         'nome' => $usuario['nome'],
         'email' => $usuario['email'],
         'foto_perfil' => $usuario['foto_perfil'],

@@ -1,0 +1,979 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="auth.js"></script>
+
+    <title>Configurações - Elo</title>
+
+    <link rel="stylesheet" href="configuracoes.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="menuLateral.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+
+    <script src="menuLateral.js" defer></script>
+    <script src="fotoPerfil.js" defer></script>
+
+    <style>
+        .config-grid {
+            display: block;
+            max-width: 1050px;
+        }
+
+        .config-direita {
+            gap: 22px;
+        }
+
+        .campo-config {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 16px;
+        }
+
+        .campo-config label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .campo-config input,
+        .campo-config textarea,
+        .campo-config select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #d9deea;
+            border-radius: 7px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+        }
+
+        .campo-config input:focus,
+        .campo-config textarea:focus,
+        .campo-config select:focus {
+            border-color: #1265df;
+            box-shadow: 0 0 0 3px rgba(18, 101, 223, .10);
+        }
+
+        .campo-config textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .form-config {
+            display: none;
+            margin-top: 22px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .form-config.aberto {
+            display: block;
+        }
+
+        .acoes-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .btn-principal,
+        .btn-secundario {
+            border-radius: 7px;
+            padding: 10px 15px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .btn-principal {
+            border: 1px solid #1265df;
+            background: #1265df;
+            color: #fff;
+        }
+
+        .btn-principal:hover {
+            background: #0d4fba;
+        }
+
+        .btn-secundario {
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #444;
+        }
+
+        .btn-secundario:hover {
+            background: #f5f7fb;
+        }
+
+        .cfg-acao {
+            flex-shrink: 0;
+        }
+
+        .cfg-alternativa {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 14px 0;
+            border-top: 1px solid #eee;
+        }
+
+        .cfg-alternativa:first-of-type {
+            border-top: 0;
+        }
+
+        .cfg-alternativa strong {
+            display: block;
+            font-size: 13px;
+            color: #111;
+        }
+
+        .cfg-alternativa small {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #888;
+            line-height: 1.5;
+        }
+
+        .cfg-alternativa input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            accent-color: #1265df;
+            cursor: pointer;
+        }
+
+        .mensagem-config {
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 12px;
+            color: #1265df;
+        }
+
+        .mensagem-config.erro {
+            color: #c0392b;
+        }
+
+        .mensagem-config.sucesso {
+            color: #16804a;
+        }
+
+        .dados strong {
+            overflow-wrap: anywhere;
+        }
+
+        .sub {
+            line-height: 1.5;
+        }
+
+        @media (max-width: 700px) {
+            .perfil-corpo {
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .perfil-topo {
+                flex-wrap: wrap;
+            }
+
+            .cfg-alternativa {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar"></div>
+
+    <div class="layout-principal">
+
+        <aside class="area-lateral">
+            <div class="barra-lateral">
+                <a href="perfil.html">
+                    <i class="fa-regular fa-user"></i> Meu perfil
+                </a>
+
+                <a href="criador.html">
+                    <i class="fa-solid fa-chart-column"></i> Painel do criador
+                </a>
+
+                <a href="projetos.html">
+                    <i class="fa-regular fa-comment-dots"></i> Projetos criados
+                </a>
+
+                <a href="doacoes.html">
+                    <i class="fa-solid fa-dollar-sign"></i> Minhas doações
+                </a>
+
+                <a href="favoritos.html">
+                    <i class="fa-regular fa-heart"></i> Favoritos
+                </a>
+
+                <a href="notificacao.html">
+                    <i class="fa-regular fa-bell"></i> Notificações
+                </a>
+
+                <a href="configuracoes.html" class="ativo">
+                    <i class="fa-solid fa-gear"></i> Configurações
+                </a>
+
+                <a href="logout.php">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </a>
+            </div>
+
+            <div class="card-destaque">
+                <i class="fa-regular fa-heart" id="card-icon"></i>
+                <p id="card-text">
+                    Conecte-se com ideias que transformam o futuro.
+                </p>
+            </div>
+        </aside>
+
+        <main class="conteudo-principal">
+            <h1>Configurações</h1>
+            <p>Gerencie suas preferências e informações da conta.</p>
+
+            <div class="config-grid">
+                <div class="config-direita">
+
+                    <!-- PERFIL -->
+                    <section class="perfil-info" id="perfil">
+                        <div class="perfil-topo">
+                            <div>
+                                <h2>Informações do perfil</h2>
+                                <p class="sub">Atualize seus dados pessoais.</p>
+                            </div>
+
+                            <button type="button"
+                                class="btn-contorno"
+                                id="btnEditar">
+                                <i class="fa-solid fa-pencil"></i> Editar
+                            </button>
+                        </div>
+
+                        <div class="perfil-corpo">
+                            <div class="foto">
+                                <img id="fotoPerfil"
+                                    src="mariane.jpg"
+                                    alt="Foto de perfil">
+
+                                <button class="foto-btn"
+                                    id="btnFoto"
+                                    type="button"
+                                    aria-label="Alterar foto">
+                                    <i class="fa-solid fa-camera"></i>
+                                </button>
+
+                                <input type="file"
+                                    id="arquivoFoto"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    hidden>
+                            </div>
+
+                            <div class="dados">
+                                <div>
+                                    <span>Nome completo</span>
+                                    <strong id="nomePerfil">Carregando...</strong>
+                                </div>
+
+                                <div>
+                                    <span>Tipo de conta</span>
+                                    <strong id="tipoPerfil">—</strong>
+                                </div>
+
+                                <div>
+                                    <span>E-mail</span>
+                                    <strong id="emailPerfil">Carregando...</strong>
+                                </div>
+
+                                <div>
+                                    <span>Data de cadastro</span>
+                                    <strong id="dataCadastro">—</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="formPerfil" class="form-config">
+                            <div class="campo-config">
+                                <label for="nomeEdicao">Nome completo</label>
+                                <input type="text"
+                                    id="nomeEdicao"
+                                    name="nome"
+                                    maxlength="100"
+                                    required>
+                            </div>
+
+                            <div class="campo-config">
+                                <label for="emailEdicao">E-mail</label>
+                                <input type="email"
+                                    id="emailEdicao"
+                                    name="email"
+                                    maxlength="150"
+                                    required>
+                            </div>
+
+                            <div class="campo-config">
+                                <label for="biografiaEdicao">Biografia</label>
+                                <textarea id="biografiaEdicao"
+                                    name="biografia"
+                                    maxlength="1000"
+                                    placeholder="Conte um pouco sobre você"></textarea>
+                            </div>
+
+                            <div class="acoes-form">
+                                <button type="submit" class="btn-principal">
+                                    Salvar alterações
+                                </button>
+
+                                <button type="button"
+                                    class="btn-secundario"
+                                    id="cancelarEdicao">
+                                    Cancelar
+                                </button>
+                            </div>
+
+                            <p id="mensagemPerfil"
+                                class="mensagem-config"
+                                role="status"></p>
+                        </form>
+                    </section>
+
+                    <!-- SEGURANÇA -->
+                    <section class="caixa" id="seguranca">
+                        <h2>Segurança da conta</h2>
+                        <p class="sub">Mantenha sua conta protegida.</p>
+
+                        <div class="cfg-linha">
+                            <div class="cfg-linha-icone">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+
+                            <div class="cfg-linha-texto">
+                                <strong>Senha</strong>
+                                <small>
+                                    Altere sua senha para manter sua conta segura.
+                                </small>
+                            </div>
+
+                            <button type="button"
+                                class="btn-contorno cfg-acao"
+                                id="btnSenha">
+                                Alterar
+                            </button>
+                        </div>
+
+                        <form id="formSenha" class="form-config">
+                            <div class="campo-config">
+                                <label for="senhaAtual">Senha atual</label>
+                                <input type="password"
+                                    id="senhaAtual"
+                                    name="senha_atual"
+                                    autocomplete="current-password"
+                                    required>
+                            </div>
+
+                            <div class="campo-config">
+                                <label for="novaSenha">Nova senha</label>
+                                <input type="password"
+                                    id="novaSenha"
+                                    name="nova_senha"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    required>
+                            </div>
+
+                            <div class="campo-config">
+                                <label for="confirmarSenha">Confirmar nova senha</label>
+                                <input type="password"
+                                    id="confirmarSenha"
+                                    name="confirmar_senha"
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                    required>
+                            </div>
+
+                            <div class="acoes-form">
+                                <button type="submit" class="btn-principal">
+                                    Salvar nova senha
+                                </button>
+
+                                <button type="button"
+                                    class="btn-secundario"
+                                    data-cancelar="formSenha">
+                                    Cancelar
+                                </button>
+                            </div>
+
+                            <p id="mensagemSenha"
+                                class="mensagem-config"
+                                role="status"></p>
+                        </form>
+
+                        <div class="cfg-linha">
+                            <div class="cfg-linha-icone">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+
+                            <div class="cfg-linha-texto">
+                                <strong>Verificação de duas etapas</strong>
+                                <small>
+                                    A verificação em duas etapas ainda não está
+                                    disponível nesta versão.
+                                </small>
+                            </div>
+
+                            <span class="status">Indisponível</span>
+                        </div>
+
+                        <div class="cfg-linha">
+                            <div class="cfg-linha-icone">
+                                <i class="fa-solid fa-desktop"></i>
+                            </div>
+
+                            <div class="cfg-linha-texto">
+                                <strong>Dispositivos conectados</strong>
+                                <small>
+                                    O gerenciamento de dispositivos ainda não
+                                    está disponível nesta versão.
+                                </small>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- PREFERÊNCIAS -->
+                    <section class="caixa" id="preferencias">
+                        <h2>Preferências da conta</h2>
+                        <p class="sub">
+                            Personalize sua experiência na plataforma.
+                        </p>
+
+                        <form id="formPreferencias">
+                            <div class="cfg-alternativa">
+                                <div>
+                                    <strong>Notificações por e-mail</strong>
+                                    <small>
+                                        Preferência para receber comunicações
+                                        por e-mail.
+                                    </small>
+                                </div>
+
+                                <input type="checkbox"
+                                    id="notificacoesEmail"
+                                    name="notificacoes_email">
+                            </div>
+
+                            <div class="cfg-alternativa">
+                                <div>
+                                    <strong>Notificações do sistema</strong>
+                                    <small>
+                                        Ative ou desative as notificações
+                                        exibidas pela plataforma.
+                                    </small>
+                                </div>
+
+                                <input type="checkbox"
+                                    id="notificacoesSistema"
+                                    name="notificacoes_sistema">
+                            </div>
+
+                            <div class="cfg-alternativa">
+                                <div>
+                                    <strong>Perfil público</strong>
+                                    <small>
+                                        Define sua preferência de visibilidade.
+                                        A aplicação precisa respeitá-la nas
+                                        páginas públicas.
+                                    </small>
+                                </div>
+
+                                <input type="checkbox"
+                                    id="perfilPublico"
+                                    name="perfil_publico">
+                            </div>
+
+                            <div class="campo-config" style="margin-top:20px">
+                                <label for="idioma">Idioma da plataforma</label>
+                                <select id="idioma" disabled>
+                                    <option value="pt-BR">
+                                        Português (Brasil)
+                                    </option>
+                                </select>
+                                <small style="color:#888;font-size:11px">
+                                    Atualmente, o Elo está disponível em
+                                    português.
+                                </small>
+                            </div>
+
+                            <div class="acoes-form">
+                                <button type="submit" class="btn-principal">
+                                    Salvar preferências
+                                </button>
+                            </div>
+
+                            <p id="mensagemPreferencias"
+                                class="mensagem-config"
+                                role="status"></p>
+                        </form>
+                    </section>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="logo">
+                <img src="Vetorizado (1) (1).png"
+                    alt="Logo Instituto Elo"
+                    class="footer-logo">
+            </div>
+
+            <p class="slogan">
+                Conectando ideias, transformando realidades.
+            </p>
+
+            <div class="social-icons">
+                <a href="https://www.instagram.com/instituto_.elo/"
+                    aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="https://www.facebook.com/profile.php?id=61595034278434"
+                    aria-label="Facebook">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+
+                <a href="https://www.linkedin.com/company/instituto-elo-brasil/"
+                    aria-label="LinkedIn">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="navegaçao">
+            <ul>
+                <li><a href="explorar.html">Projetos</a></li>
+                <li><a href="index.html">Como funciona</a></li>
+                <li><a href="sobre.html">Sobre nós</a></li>
+            </ul>
+        </div>
+
+        <div class="institucional">
+            <ul>
+                <li><a href="transparencia.html">Transparência</a></li>
+                <li><a href="termos.html">Termos de uso</a></li>
+                <li><a href="politica.html">Política de privacidade</a></li>
+            </ul>
+        </div>
+
+        <div class="contato">
+            <p>contato@elo.com.br</p>
+            <p>(12) 92348-922067</p>
+        </div>
+    </footer>
+
+    <div class="aviso" id="aviso" role="status"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            "use strict";
+
+            const $ = id => document.getElementById(id);
+
+            function mostrarMensagem(id, texto, tipo = "") {
+                const elemento = $(id);
+                if (!elemento) return;
+
+                elemento.textContent = texto;
+                elemento.className = "mensagem-config";
+
+                if (tipo) elemento.classList.add(tipo);
+            }
+
+            function aviso(texto) {
+                const elemento = $("aviso");
+                elemento.textContent = texto;
+                elemento.classList.add("visivel");
+
+                setTimeout(() => {
+                    elemento.classList.remove("visivel");
+                }, 3000);
+            }
+
+            async function requisicao(url, opcoes = {}) {
+                const resposta = await fetch(url, {
+                    credentials: "same-origin",
+                    cache: "no-store",
+                    ...opcoes
+                });
+
+                const tipo = resposta.headers.get("content-type") || "";
+
+                if (!tipo.includes("application/json")) {
+                    throw new Error(
+                        "O servidor não retornou JSON. Verifique se o PHP está funcionando."
+                    );
+                }
+
+                const dados = await resposta.json();
+
+                if (resposta.status === 401) {
+                    localStorage.removeItem("eloSessao");
+                    window.location.replace(
+                        "login.html?voltar=" +
+                        encodeURIComponent("configuracoes.html")
+                    );
+                    throw new Error("Sua sessão expirou. Entre novamente.");
+                }
+
+                if (!resposta.ok) {
+                    throw new Error(dados.erro || "Não foi possível concluir a operação.");
+                }
+
+                return dados;
+            }
+
+            function formatarData(data) {
+                if (!data) return "Não informada";
+
+                const valor = String(data).slice(0, 10);
+                const partes = valor.split("-");
+
+                if (partes.length !== 3) return valor;
+
+                const dataValida = new Date(
+                    Number(partes[0]),
+                    Number(partes[1]) - 1,
+                    Number(partes[2])
+                );
+
+                return dataValida.toLocaleDateString("pt-BR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                });
+            }
+
+            function normalizarFoto(caminho) {
+                if (!caminho) return "mariane.jpg";
+
+                if (/^(https?:|data:|blob:)/i.test(caminho)) {
+                    return caminho;
+                }
+
+                return caminho.replace(/^\.\/+/, "");
+            }
+
+            let usuarioAtual = null;
+
+            function renderizarPerfil(usuario) {
+                usuarioAtual = usuario;
+
+                $("nomePerfil").textContent = usuario.nome || "—";
+                $("emailPerfil").textContent = usuario.email || "—";
+                $("tipoPerfil").textContent = usuario.tipo || "—";
+                $("dataCadastro").textContent = formatarData(usuario.criado_em);
+
+                $("nomeEdicao").value = usuario.nome || "";
+                $("emailEdicao").value = usuario.email || "";
+                $("biografiaEdicao").value = usuario.biografia || "";
+
+                const foto = $("fotoPerfil");
+                const caminho = normalizarFoto(usuario.foto_perfil);
+
+                foto.onerror = () => {
+                    foto.onerror = null;
+                    foto.src =
+                        "data:image/svg+xml;charset=UTF-8," +
+                        encodeURIComponent(
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">' +
+                            '<rect width="96" height="96" fill="#dceaff"/>' +
+                            '<circle cx="48" cy="35" r="17" fill="#1265df"/>' +
+                            '<path d="M15 92c3-22 18-34 33-34s30 12 33 34" fill="#1265df"/>' +
+                            '</svg>'
+                        );
+                };
+
+                foto.src = caminho;
+
+                try {
+                    const sessao = JSON.parse(
+                        localStorage.getItem("eloSessao") || "{}"
+                    );
+
+                    localStorage.setItem("eloSessao", JSON.stringify({
+                        ...sessao,
+                        id: usuario.id,
+                        nome: usuario.nome,
+                        email: usuario.email,
+                        tipo: usuario.tipo
+                    }));
+                } catch (erro) {
+                    console.warn("Não foi possível sincronizar a sessão local.");
+                }
+            }
+
+            async function carregarPerfil() {
+                try {
+                    const usuario = await requisicao("dados_perfil.php");
+                    renderizarPerfil(usuario);
+                } catch (erro) {
+                    mostrarMensagem("mensagemPerfil", erro.message, "erro");
+                    $("nomePerfil").textContent = "Não foi possível carregar";
+                    $("emailPerfil").textContent = "—";
+                }
+            }
+
+            // Abre e fecha o formulário de edição do perfil.
+            $("btnEditar").addEventListener("click", () => {
+                $("formPerfil").classList.toggle("aberto");
+
+                if ($("formPerfil").classList.contains("aberto")) {
+                    $("nomeEdicao").focus();
+                }
+            });
+
+            $("cancelarEdicao").addEventListener("click", () => {
+                $("formPerfil").classList.remove("aberto");
+
+                if (usuarioAtual) {
+                    renderizarPerfil(usuarioAtual);
+                }
+
+                mostrarMensagem("mensagemPerfil", "");
+            });
+
+            // Salva nome, e-mail e biografia no MySQL.
+            $("formPerfil").addEventListener("submit", async evento => {
+                evento.preventDefault();
+
+                const botao = evento.submitter;
+                if (botao) botao.disabled = true;
+
+                try {
+                    const formulario = new FormData($("formPerfil"));
+
+                    const dados = await requisicao("atualizar_perfil.php", {
+                        method: "POST",
+                        body: formulario
+                    });
+
+                    const usuario = dados.usuario || dados;
+                    renderizarPerfil(usuario);
+
+                    $("formPerfil").classList.remove("aberto");
+
+                    mostrarMensagem(
+                        "mensagemPerfil",
+                        dados.mensagem || "Perfil atualizado com sucesso.",
+                        "sucesso"
+                    );
+
+                    aviso("Perfil atualizado!");
+                } catch (erro) {
+                    mostrarMensagem("mensagemPerfil", erro.message, "erro");
+                } finally {
+                    if (botao) botao.disabled = false;
+                }
+            });
+
+            // Seleciona e envia a foto diretamente para o PHP.
+            $("btnFoto").addEventListener("click", () => {
+                $("arquivoFoto").click();
+            });
+
+            $("arquivoFoto").addEventListener("change", async evento => {
+                const arquivo = evento.target.files[0];
+                if (!arquivo) return;
+
+                const tipos = ["image/jpeg", "image/png", "image/webp"];
+
+                if (!tipos.includes(arquivo.type)) {
+                    aviso("Escolha uma imagem JPG, PNG ou WEBP.");
+                    evento.target.value = "";
+                    return;
+                }
+
+                if (arquivo.size > 2 * 1024 * 1024) {
+                    aviso("Escolha uma imagem de até 2 MB.");
+                    evento.target.value = "";
+                    return;
+                }
+
+                if (!usuarioAtual) {
+                    aviso("Não foi possível carregar os dados do perfil.");
+                    evento.target.value = "";
+                    return;
+                }
+
+                const imagemTemporaria = URL.createObjectURL(arquivo);
+                const foto = $("fotoPerfil");
+                foto.src = imagemTemporaria;
+
+                const formulario = new FormData();
+                formulario.append("nome", usuarioAtual.nome || "");
+                formulario.append("email", usuarioAtual.email || "");
+                formulario.append("biografia", usuarioAtual.biografia || "");
+                formulario.append("foto", arquivo);
+
+                try {
+                    const dados = await requisicao("atualizar_perfil.php", {
+                        method: "POST",
+                        body: formulario
+                    });
+
+                    renderizarPerfil(dados.usuario || dados);
+                    mostrarMensagem(
+                        "mensagemPerfil",
+                        "Foto atualizada com sucesso.",
+                        "sucesso"
+                    );
+                    aviso("Foto atualizada!");
+                } catch (erro) {
+                    foto.src = normalizarFoto(usuarioAtual.foto_perfil);
+                    mostrarMensagem("mensagemPerfil", erro.message, "erro");
+                } finally {
+                    URL.revokeObjectURL(imagemTemporaria);
+                    evento.target.value = "";
+                }
+            });
+
+            // Formulário de alteração de senha.
+            $("btnSenha").addEventListener("click", () => {
+                $("formSenha").classList.toggle("aberto");
+            });
+
+            $("formSenha").addEventListener("submit", async evento => {
+                evento.preventDefault();
+
+                if ($("novaSenha").value !== $("confirmarSenha").value) {
+                    mostrarMensagem(
+                        "mensagemSenha",
+                        "A confirmação não corresponde à nova senha.",
+                        "erro"
+                    );
+                    return;
+                }
+
+                const botao = evento.submitter;
+                if (botao) botao.disabled = true;
+
+                try {
+                    const dados = await requisicao("alterar_senha.php", {
+                        method: "POST",
+                        body: new FormData($("formSenha"))
+                    });
+
+                    mostrarMensagem("mensagemSenha", dados.mensagem, "sucesso");
+                    $("formSenha").reset();
+                    aviso("Senha alterada com sucesso!");
+                } catch (erro) {
+                    mostrarMensagem("mensagemSenha", erro.message, "erro");
+                } finally {
+                    if (botao) botao.disabled = false;
+                }
+            });
+
+            // Carrega as preferências persistidas no banco.
+            async function carregarPreferencias() {
+                try {
+                    const dados = await requisicao(
+                        "preferencias_configuracoes.php"
+                    );
+
+                    $("notificacoesEmail").checked =
+                        Boolean(dados.notificacoes_email);
+
+                    $("notificacoesSistema").checked =
+                        Boolean(dados.notificacoes_sistema);
+
+                    $("perfilPublico").checked =
+                        Boolean(dados.perfil_publico);
+                } catch (erro) {
+                    mostrarMensagem(
+                        "mensagemPreferencias",
+                        erro.message,
+                        "erro"
+                    );
+                }
+            }
+
+            // Salva as preferências no banco.
+            $("formPreferencias").addEventListener("submit", async evento => {
+                evento.preventDefault();
+
+                const preferencias = {
+                    notificacoes_email: $("notificacoesEmail").checked,
+                    notificacoes_sistema: $("notificacoesSistema").checked,
+                    perfil_publico: $("perfilPublico").checked
+                };
+
+                const botao = evento.submitter;
+                if (botao) botao.disabled = true;
+
+                try {
+                    const dados = await requisicao(
+                        "preferencias_configuracoes.php",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(preferencias)
+                        }
+                    );
+
+                    mostrarMensagem(
+                        "mensagemPreferencias",
+                        dados.mensagem || "Preferências salvas.",
+                        "sucesso"
+                    );
+
+                    aviso("Preferências salvas!");
+                } catch (erro) {
+                    mostrarMensagem(
+                        "mensagemPreferencias",
+                        erro.message,
+                        "erro"
+                    );
+                } finally {
+                    if (botao) botao.disabled = false;
+                }
+            });
+
+            // Botões para fechar os formulários.
+            document.querySelectorAll("[data-cancelar]").forEach(botao => {
+                botao.addEventListener("click", () => {
+                    const formulario = $(botao.dataset.cancelar);
+
+                    if (formulario) {
+                        formulario.classList.remove("aberto");
+                        formulario.reset();
+                    }
+                });
+            });
+
+            carregarPerfil();
+            carregarPreferencias();
+        });
+    </script>
+</body>
+</html>
