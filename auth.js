@@ -104,9 +104,9 @@
         },
 
         // Encerra a sessão e volta para a página inicial
-       sair() {
-    localStorage.removeItem(CHAVE_SESSAO);
-    window.location.replace("index.html");
+sair() {
+    localStorage.removeItem("eloSessao");
+    window.location.replace("logout.php");
 },
 
         // Define para onde o usuário deve ir após o login

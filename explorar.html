@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -24,7 +23,8 @@
         <section class="topo">
             <div class="topo-texto">
                 <h1>Explore projetos que <br><span>transformam</span> o futuro</h1>
-                <p>Conheça ideias, apoie iniciativas e faça parte de histórias que geram impacto real na educação e na sociedade.</p>
+                <p>Conheça ideias, apoie iniciativas e faça parte de histórias que geram impacto real na educação e na
+                    sociedade.</p>
             </div>
 
             <div class="estatisticas">
@@ -113,13 +113,15 @@
             <p class="slogan">Conectando ideias, transformando realidades.</p>
 
             <div class="social-icons">
-                <a href="https://www.instagram.com/instituto_.elo/?utm_source=ig_web_button_share_sheet" aria-label="Instagram">
+                <a href="https://www.instagram.com/instituto_.elo/?utm_source=ig_web_button_share_sheet"
+                    aria-label="Instagram">
                     <i class="fa-brands fa-instagram"></i>
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61595034278434" aria-label="Facebook">
                     <i class="fa-brands fa-facebook-f"></i>
                 </a>
-                <a href="https://www.linkedin.com/company/instituto-elo-brasil/home/?viewAsMember=true" aria-label="LinkedIn">
+                <a href="https://www.linkedin.com/company/instituto-elo-brasil/home/?viewAsMember=true"
+                    aria-label="LinkedIn">
                     <i class="fa-brands fa-linkedin-in"></i>
                 </a>
             </div>
@@ -148,116 +150,196 @@
         </div>
     </div>
 
-    <script>
-        const POR_PAGINA = 8;
-        let categoriaAtual = "Todos";
-        let ordem = "recentes";
-        let visiveis = POR_PAGINA;
-        let projetos = [];
-        const favoritos = new Set();
+   
 
-        const grade = document.getElementById("grade");
-        const verMais = document.getElementById("verMais");
 
-        const moeda = n => "R$ " + Number(n || 0).toLocaleString("pt-BR", {
+<script>
+    // ==============================
+    // CONFIGURAÇÕES
+    // ==============================
+    const POR_PAGINA = 8;
+
+    let categoriaAtual = "Todos";
+    let ordem = "recentes";
+    let visiveis = POR_PAGINA;
+    let projetos = [];
+    let favoritos = new Set();
+    let sessaoLogada = false;
+    let carregando = true;
+
+    const grade = document.getElementById("grade");
+    const verMais = document.getElementById("verMais");
+
+    const parametros = new URLSearchParams(window.location.search);
+    const termoBusca = (parametros.get("busca") || "").trim();
+
+    // ==============================
+    // FUNÇÕES AUXILIARES
+    // ==============================
+    function moeda(valor) {
+        return "R$ " + Number(valor || 0).toLocaleString("pt-BR", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
         });
+    }
 
-        const termoBusca = (new URLSearchParams(window.location.search).get("busca") || "").trim();
-
-        const normalizar = t => String(t || "")
+    function normalizar(texto) {
+        return String(texto || "")
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .toLowerCase();
+    }
 
-        function combinaComBusca(p) {
-            if (!termoBusca) return true;
+    function escaparHTML(valor) {
+        return String(valor ?? "").replace(/[&<>"']/g, caractere => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[caractere]);
+    }
 
-            const texto = normalizar([
-                p.titulo,
-                p.desc,
-                p.categoria,
-                p.autor,
-                p.org,
-                p.local
-            ].join(" "));
+    function irParaLogin(destino) {
+        window.location.href =
+            "login.html?voltar=" + encodeURIComponent(destino);
+    }
 
-            return normalizar(termoBusca)
-                .split(/\s+/)
-                .every(palavra => texto.includes(palavra));
-        }
-
-        function ordenar(lista) {
-            const copia = [...lista];
-
-            if (ordem === "progresso") {
-                copia.sort((a, b) => b.pct - a.pct);
-            } else if (ordem === "arrecadado") {
-                copia.sort((a, b) => b.arrecadado - a.arrecadado);
-            } else if (ordem === "apoiadores") {
-                copia.sort((a, b) => b.apoiadores - a.apoiadores);
-            } else {
-                copia.sort((a, b) => {
-                    const dataA = new Date(a.criado_em || a.data_inicio || 0);
-                    const dataB = new Date(b.criado_em || b.data_inicio || 0);
-                    return dataB - dataA;
-                });
+    // Consulta a sessão diretamente no PHP.
+    async function verificarSessao() {
+        const resposta = await fetch("listar_ids_favoritos.php", {
+            method: "GET",
+            cache: "no-store",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
             }
+        });
 
-            return copia;
+        if (!resposta.ok) {
+            throw new Error("Não foi possível verificar a sessão.");
         }
 
-        function escaparHTML(valor) {
-            return String(valor ?? "").replace(/[&<>"']/g, caractere => ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#39;"
-            })[caractere]);
+        const dados = await resposta.json();
+
+        sessaoLogada = dados.logado === true;
+
+        return dados;
+    }
+
+    // ==============================
+    // BUSCA E ORDENAÇÃO
+    // ==============================
+    function combinaComBusca(projeto) {
+        if (!termoBusca) return true;
+
+        const texto = normalizar([
+            projeto.titulo,
+            projeto.desc,
+            projeto.categoria,
+            projeto.autor,
+            projeto.org,
+            projeto.local
+        ].join(" "));
+
+        return normalizar(termoBusca)
+            .split(/\s+/)
+            .every(palavra => texto.includes(palavra));
+    }
+
+    function ordenarProjetos(lista) {
+        const copia = [...lista];
+
+        if (ordem === "progresso") {
+            copia.sort((a, b) => b.pct - a.pct);
+        } else if (ordem === "arrecadado") {
+            copia.sort((a, b) => b.arrecadado - a.arrecadado);
+        } else if (ordem === "apoiadores") {
+            copia.sort((a, b) => b.apoiadores - a.apoiadores);
+        } else {
+            copia.sort((a, b) => {
+                const dataA = new Date(
+                    a.criado_em || a.data_inicio || 0
+                ).getTime();
+
+                const dataB = new Date(
+                    b.criado_em || b.data_inicio || 0
+                ).getTime();
+
+                return dataB - dataA;
+            });
         }
 
-        function criarCard(p) {
-            const id = Number(p.id);
-            const fav = favoritos.has(id);
-            const prazo = Number(p.dias) === 0
-                ? "Prazo encerrado"
-                : `${p.dias} dias restantes`;
+        return copia;
+    }
 
-            const titulo = escaparHTML(p.titulo);
-            const categoria = escaparHTML(p.categoria);
-            const descricao = escaparHTML(p.desc);
-            const organizacao = escaparHTML(p.org);
-            const imagem = escaparHTML(p.img || "");
-            const cor = /^#[0-9a-f]{3,8}$/i.test(p.cor || "")
-                ? p.cor
-                : "#2157AE";
+    // ==============================
+    // CRIAR CARD DO PROJETO
+    // ==============================
+    function criarCard(projeto) {
+        const id = Number(projeto.id);
 
-            const progresso = Math.max(0, Math.min(100, Number(p.pct) || 0));
+        // Sem sessão confirmada, o coração nunca fica azul.
+        const favoritado =
+            sessaoLogada && favoritos.has(id);
 
-            return `
+        const titulo = escaparHTML(projeto.titulo);
+        const categoria = escaparHTML(projeto.categoria);
+        const descricao = escaparHTML(projeto.desc);
+        const organizacao = escaparHTML(projeto.org);
+        const imagem = escaparHTML(projeto.img || "");
+
+        const cor = /^#[0-9a-f]{3,8}$/i.test(projeto.cor || "")
+            ? projeto.cor
+            : "#2157AE";
+
+        const progresso = Math.max(
+            0,
+            Math.min(100, Number(projeto.pct) || 0)
+        );
+
+        const dias = Number(projeto.dias) || 0;
+
+        const prazo = dias > 0
+            ? `${dias} dias restantes`
+            : "Prazo encerrado";
+
+        return `
             <article class="projeto">
-                <div class="projeto-img" style="background-image:url('${imagem}')">
-                    <button class="coracao ${fav ? "ativo" : ""}"
+                <div class="projeto-img"
+                     style="background-image: url('${imagem}')">
+
+                    <button
+                        type="button"
+                        class="coracao ${favoritado ? "ativo" : ""}"
                         data-id="${id}"
-                        aria-label="${fav ? "Remover dos favoritos" : "Adicionar aos favoritos"}">
-                        <i class="${fav ? "fa-solid" : "fa-regular"} fa-heart"></i>
+                        aria-label="${favoritado
+                            ? "Remover dos favoritos"
+                            : "Adicionar aos favoritos"}"
+                        ${carregando ? "disabled" : ""}>
+
+                        <i class="${favoritado
+                            ? "fa-solid"
+                            : "fa-regular"} fa-heart"></i>
                     </button>
                 </div>
 
                 <div class="projeto-corpo">
-                    <span class="tag" style="background:${cor}">${categoria}</span>
+                    <span class="tag" style="background: ${cor}">
+                        ${categoria}
+                    </span>
+
                     <h3>${titulo}</h3>
+
                     <p class="desc">${descricao}</p>
 
                     <div class="valores">
-                        <strong>${moeda(p.arrecadado)}</strong>
-                        <span>de ${moeda(p.meta)}</span>
+                        <strong>${moeda(projeto.arrecadado)}</strong>
+                        <span>de ${moeda(projeto.meta)}</span>
                     </div>
 
                     <div class="barra">
-                        <div style="width:${progresso}%; background:${cor}"></div>
+                        <div style="width: ${progresso}%; background: ${cor}"></div>
                     </div>
 
                     <div class="valores pequeno">
@@ -266,71 +348,119 @@
                     </div>
 
                     <div class="meta-info">
-                        <span><i class="fa-regular fa-user"></i> ${Number(p.apoiadores) || 0} apoiadores</span>
-                        <span><i class="fa-regular fa-building"></i> ${organizacao}</span>
+                        <span>
+                            <i class="fa-regular fa-user"></i>
+                            ${Number(projeto.apoiadores) || 0} apoiadores
+                        </span>
+
+                        <span>
+                            <i class="fa-regular fa-building"></i>
+                            ${organizacao}
+                        </span>
                     </div>
 
                     <a href="projeto.html?id=${id}"
-                        class="apoie"
-                        onclick="return verificarLogin(event, ${id})">Apoie</a>
+                       class="apoie"
+                       data-projeto="${id}">
+                        Apoie
+                    </a>
                 </div>
-            </article>`;
+            </article>
+        `;
+    }
+
+    // ==============================
+    // EXIBIR PROJETOS
+    // ==============================
+    function renderizar() {
+        if (carregando) {
+            grade.innerHTML =
+                '<p class="vazio">Carregando projetos...</p>';
+            return;
         }
 
-        function verificarLogin(event, id) {
-            event.preventDefault();
+        const filtrados = ordenarProjetos(
+            projetos.filter(projeto => {
+                const categoriaCorresponde =
+                    categoriaAtual === "Todos" ||
+                    normalizar(projeto.categoria) ===
+                    normalizar(categoriaAtual);
 
-            if (window.Auth && typeof Auth.estaLogado === "function" && !Auth.estaLogado()) {
-                window.location.href = "login.html?voltar=" +
-                    encodeURIComponent("projeto.html?id=" + id);
-                return false;
-            }
+                return categoriaCorresponde &&
+                    combinaComBusca(projeto);
+            })
+        );
 
-            window.location.href = `projeto.html?id=${id}`;
-            return false;
-        }
+        const buscaResultado =
+            document.getElementById("buscaResultado");
 
-        function renderizar() {
-            const filtrados = ordenar(
-                projetos.filter(p =>
-                    (categoriaAtual === "Todos" || p.categoria === categoriaAtual) &&
-                    combinaComBusca(p)
-                )
-            );
+        const buscaTexto =
+            document.getElementById("buscaTexto");
+
+        if (buscaResultado && buscaTexto) {
+            buscaResultado.hidden = !termoBusca;
 
             if (termoBusca) {
-                document.getElementById("buscaResultado").hidden = false;
-                document.getElementById("buscaTexto").textContent =
-                    `Resultados para “${termoBusca}”: ${filtrados.length} ${filtrados.length === 1 ? "projeto" : "projetos"}`;
+                buscaTexto.textContent =
+                    `Resultados para "${termoBusca}": ${filtrados.length} ` +
+                    (filtrados.length === 1 ? "projeto" : "projetos");
             }
-
-            grade.innerHTML = filtrados.length
-                ? filtrados.slice(0, visiveis).map(criarCard).join("")
-                : `<p class="vazio">${termoBusca
-                    ? "Nenhum projeto encontrado para “" + escaparHTML(termoBusca) + "”."
-                    : "Nenhum projeto encontrado nesta categoria."}</p>`;
-
-            verMais.style.display = filtrados.length > visiveis ? "flex" : "none";
         }
 
-        document.querySelectorAll(".chip").forEach(chip => {
-            chip.addEventListener("click", () => {
-                document.querySelectorAll(".chip").forEach(c => c.classList.remove("ativo"));
-                chip.classList.add("ativo");
-                categoriaAtual = chip.dataset.categoria;
-                visiveis = POR_PAGINA;
-                renderizar();
-            });
-        });
+        const exibidos = filtrados.slice(0, visiveis);
 
-        document.getElementById("ordenacao").addEventListener("change", e => {
-            ordem = e.target.value;
+        if (exibidos.length) {
+            grade.innerHTML = exibidos.map(criarCard).join("");
+        } else {
+            grade.innerHTML = `
+                <p class="vazio">
+                    ${termoBusca
+                        ? "Nenhum projeto encontrado para essa busca."
+                        : "Nenhum projeto encontrado nesta categoria."}
+                </p>
+            `;
+        }
+
+        verMais.style.display =
+            filtrados.length > visiveis ? "flex" : "none";
+    }
+
+    // ==============================
+    // FILTROS DE CATEGORIA
+    // ==============================
+    document.querySelectorAll(".chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+            document.querySelectorAll(".chip").forEach(item => {
+                item.classList.remove("ativo");
+            });
+
+            chip.classList.add("ativo");
+            categoriaAtual = chip.dataset.categoria;
+            visiveis = POR_PAGINA;
+
             renderizar();
         });
+    });
 
-        const visGrade = document.getElementById("visGrade");
-        const visLista = document.getElementById("visLista");
+    // ==============================
+    // ORDENAÇÃO
+    // ==============================
+    const ordenacao = document.getElementById("ordenacao");
 
+    if (ordenacao) {
+        ordenacao.addEventListener("change", evento => {
+            ordem = evento.target.value;
+            renderizar();
+        });
+    }
+
+    // ==============================
+    // VISUALIZAÇÃO EM GRADE OU LISTA
+    // ==============================
+    const visGrade = document.getElementById("visGrade");
+    const visLista = document.getElementById("visLista");
+
+    if (visGrade && visLista) {
         visGrade.addEventListener("click", () => {
             grade.classList.remove("lista");
             visGrade.classList.add("ativo");
@@ -342,83 +472,226 @@
             visLista.classList.add("ativo");
             visGrade.classList.remove("ativo");
         });
+    }
 
-        grade.addEventListener("click", e => {
-            const botao = e.target.closest(".coracao");
-            if (!botao) return;
+    // ==============================
+    // FAVORITAR / DESFAVORITAR
+    // ==============================
+    grade.addEventListener("click", async evento => {
+        const botao = evento.target.closest(".coracao");
+
+        if (!botao) return;
+
+        evento.preventDefault();
+
+        if (carregando || botao.disabled) return;
+
+        // Não confia apenas no estado do JavaScript:
+        // consulta a sessão real antes de favoritar.
+        botao.disabled = true;
+
+        try {
+            const sessao = await verificarSessao();
+
+            if (!sessao.logado) {
+                irParaLogin(
+                    "explorar.html" + window.location.search
+                );
+                return;
+            }
 
             const id = Number(botao.dataset.id);
+
+            const resposta = await fetch("alternar_favorito.php", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    projeto_id: id
+                })
+            });
+
+            const dados = await resposta.json();
+
+            if (resposta.status === 401 || dados.login === false) {
+                irParaLogin(
+                    "explorar.html" + window.location.search
+                );
+                return;
+            }
+
+            if (!resposta.ok || !dados.sucesso) {
+                throw new Error(
+                    dados.mensagem ||
+                    "Não foi possível atualizar os favoritos."
+                );
+            }
+
+            // Atualiza o estado somente após resposta positiva do PHP.
+            if (dados.favoritado) {
+                favoritos.add(id);
+            } else {
+                favoritos.delete(id);
+            }
+
+            botao.classList.toggle("ativo", dados.favoritado);
+
+            botao.setAttribute(
+                "aria-label",
+                dados.favoritado
+                    ? "Remover dos favoritos"
+                    : "Adicionar aos favoritos"
+            );
+
             const icone = botao.querySelector("i");
 
-            if (favoritos.has(id)) {
-                favoritos.delete(id);
-                botao.classList.remove("ativo");
-                botao.setAttribute("aria-label", "Adicionar aos favoritos");
-                icone.className = "fa-regular fa-heart";
-            } else {
-                favoritos.add(id);
-                botao.classList.add("ativo");
-                botao.setAttribute("aria-label", "Remover dos favoritos");
-                icone.className = "fa-solid fa-heart";
+            if (icone) {
+                icone.className = dados.favoritado
+                    ? "fa-solid fa-heart"
+                    : "fa-regular fa-heart";
             }
-        });
 
-        verMais.addEventListener("click", () => {
-            visiveis += POR_PAGINA;
-            renderizar();
-        });
-
-        const categoriaUrl = new URLSearchParams(window.location.search).get("categoria");
-
-        if (categoriaUrl) {
-            const chipUrl = [...document.querySelectorAll(".chip")]
-                .find(c => normalizar(c.dataset.categoria) === normalizar(categoriaUrl));
-
-            if (chipUrl) {
-                document.querySelectorAll(".chip").forEach(c => c.classList.remove("ativo"));
-                chipUrl.classList.add("ativo");
-                categoriaAtual = chipUrl.dataset.categoria;
-            }
+        } catch (erro) {
+            console.error("Erro ao atualizar favorito:", erro);
+            alert(
+                erro.message ||
+                "Não foi possível atualizar o favorito."
+            );
+        } finally {
+            botao.disabled = false;
         }
+    });
 
-        fetch("listar_projetos.php", {
-            headers: {
-                "Accept": "application/json"
-            }
-        })
-            .then(resposta => {
-                if (!resposta.ok) {
-                    throw new Error("Erro ao consultar os projetos.");
-                }
+    // ==============================
+    // BOTÃO APOIE
+    // ==============================
+    grade.addEventListener("click", evento => {
+        const link = evento.target.closest(".apoie");
 
-                return resposta.json();
-            })
-            .then(dados => {
-                if (!Array.isArray(dados)) {
-                    throw new Error(dados.erro || "Resposta inválida do servidor.");
-                }
+        if (!link) return;
 
-                projetos = dados.map(p => ({
-                    ...p,
-                    id: Number(p.id),
-                    arrecadado: Number(p.arrecadado) || 0,
-                    meta: Number(p.meta) || 0,
-                    pct: Number(p.pct) || 0,
-                    dias: Number(p.dias) || 0,
-                    apoiadores: Number(p.apoiadores) || 0
-                }));
+        if (!sessaoLogada) {
+            evento.preventDefault();
 
-                renderizar();
-            })
-            .catch(erro => {
-                console.error("Erro ao carregar projetos:", erro);
+            irParaLogin(
+                `projeto.html?id=${link.dataset.projeto}`
+            );
+        }
+    });
 
-                grade.innerHTML =
-                    '<p class="vazio">Não foi possível carregar os projetos. Verifique a conexão com o banco de dados e tente novamente.</p>';
+    // ==============================
+    // CARREGAR MAIS
+    // ==============================
+    verMais.addEventListener("click", () => {
+        visiveis += POR_PAGINA;
+        renderizar();
+    });
 
-                verMais.style.display = "none";
+    // ==============================
+    // CATEGORIA PELA URL
+    // ==============================
+    const categoriaUrl = parametros.get("categoria");
+
+    if (categoriaUrl) {
+        const chipUrl = [...document.querySelectorAll(".chip")]
+            .find(chip =>
+                normalizar(chip.dataset.categoria) ===
+                normalizar(categoriaUrl)
+            );
+
+        if (chipUrl) {
+            document.querySelectorAll(".chip").forEach(chip => {
+                chip.classList.remove("ativo");
             });
-    </script>
+
+            chipUrl.classList.add("ativo");
+            categoriaAtual = chipUrl.dataset.categoria;
+        }
+    }
+
+    // ==============================
+    // CARREGAR DADOS DO PHP
+    // ==============================
+    async function iniciarPagina() {
+        try {
+            const [dadosFavoritos, respostaProjetos] =
+                await Promise.all([
+                    verificarSessao(),
+                    fetch("listar_projetos.php", {
+                        method: "GET",
+                        cache: "no-store",
+                        credentials: "same-origin",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    })
+                ]);
+
+            if (!respostaProjetos.ok) {
+                throw new Error("Erro ao carregar os projetos.");
+            }
+
+            const dadosProjetos = await respostaProjetos.json();
+
+            if (!Array.isArray(dadosProjetos)) {
+                throw new Error(
+                    dadosProjetos.erro ||
+                    "A resposta dos projetos é inválida."
+                );
+            }
+
+            // Usuários sem sessão não recebem favoritos ativos.
+            sessaoLogada = dadosFavoritos.logado === true;
+
+            favoritos = new Set(
+                sessaoLogada && Array.isArray(dadosFavoritos.ids)
+                    ? dadosFavoritos.ids.map(Number)
+                    : []
+            );
+
+            projetos = dadosProjetos.map(projeto => ({
+                ...projeto,
+                id: Number(projeto.id),
+                arrecadado: Number(projeto.arrecadado) || 0,
+                meta: Number(projeto.meta) || 0,
+                pct: Number(projeto.pct) || 0,
+                dias: Number(projeto.dias) || 0,
+                apoiadores: Number(projeto.apoiadores) || 0
+            }));
+
+        } catch (erro) {
+            console.error("Erro ao carregar a página:", erro);
+
+            grade.innerHTML = `
+                <p class="vazio">
+                    Não foi possível carregar os projetos.
+                    Verifique se o XAMPP está ativo e tente novamente.
+                </p>
+            `;
+
+            verMais.style.display = "none";
+
+        } finally {
+            carregando = false;
+
+            if (projetos.length > 0) {
+                renderizar();
+            }
+
+            grade.querySelectorAll(".coracao").forEach(botao => {
+                botao.disabled = false;
+            });
+        }
+    }
+
+    iniciarPagina();
+</script>
+
+
+
 </body>
 
 </html>

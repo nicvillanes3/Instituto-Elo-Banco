@@ -205,6 +205,7 @@ body {
     background-color: #dceaff;
 }
 
+
 .coracao {
     position: absolute;
     top: 8px;
@@ -218,11 +219,23 @@ body {
     font-size: 12px;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: color 0.2s ease;
 }
 
+.coracao i {
+    color: inherit;
+}
+
+/* Azul somente quando estiver favoritado */
 .coracao.ativo {
     color: #1265df;
 }
+
+/* Coração desabilitado durante o carregamento */
+.coracao:disabled {
+    cursor: wait;
+}
+
 
 .projeto-corpo {
     display: flex;

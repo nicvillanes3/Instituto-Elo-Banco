@@ -1,0 +1,596 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Meus Favoritos - Elo</title>
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="favoritos.css">
+    <link rel="stylesheet" href="menuLateral.css">
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="footer.css">
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+
+    <script src="auth.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div id="navbar"></div>
+
+    <div class="dashboard-container">
+
+        <!-- MENU LATERAL -->
+        <aside class="sidebar">
+
+            <nav class="barra-lateral">
+                <a href="perfil.html">
+                    <i class="fa-regular fa-user"></i>
+                    Meu perfil
+                </a>
+
+                <a href="criador.html">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Painel do criador
+                </a>
+
+                <a href="projetos.html">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    Projetos criados
+                </a>
+
+                <a href="doacoes.html">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                    Minhas doações
+                </a>
+
+                <a href="favoritos.html" class="active">
+                    <i class="fa-regular fa-heart"></i>
+                    Favoritos
+                </a>
+
+                <a href="notificacao.html">
+                    <i class="fa-regular fa-bell"></i>
+                    Notificações
+                </a>
+
+                <a href="configuracoes.html">
+                    <i class="fa-solid fa-gear"></i>
+                    Configurações
+                </a>
+
+                <a href="logout.php">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Sair
+                </a>
+            </nav>
+
+            <div class="card-destaque">
+                <div class="destaque-icone">
+                    <i class="fa-solid fa-heart" id="card-icon"></i>
+                </div>
+
+                <h3>Você faz a diferença!</h3>
+
+                <p id="card-text">
+                    Conecte-se com ideias que transformam o futuro.
+                </p>
+            </div>
+
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main>
+
+            <header>
+                <h1>Meus favoritos</h1>
+                <p>Aqui estão os projetos que você marcou como favoritos.</p>
+            </header>
+
+            <!-- FILTROS -->
+            <div class="filtros-container">
+
+                <div class="filtros-botoes">
+
+                    <button class="btn-filtro ativo" data-filtro="todos">
+                        Todos (<span id="count-todos">0</span>)
+                    </button>
+
+                    <button class="btn-filtro" data-filtro="andamento">
+                        Em andamento (<span id="count-andamento">0</span>)
+                    </button>
+
+                    <button class="btn-filtro" data-filtro="concluidos">
+                        Concluídos (<span id="count-concluidos">0</span>)
+                    </button>
+
+                </div>
+
+                <select class="select-ordenacao" aria-label="Ordenar favoritos">
+                    <option value="recentes">Mais recentes</option>
+                    <option value="antigos">Mais antigos</option>
+                </select>
+
+            </div>
+
+            <!-- OS CARDS SERÃO CARREGADOS DO BANCO -->
+            <div class="grid-projetos" id="gridFavoritos">
+                <p class="mensagem-favoritos">
+                    Carregando seus favoritos...
+                </p>
+            </div>
+
+            <!-- PAGINAÇÃO -->
+            <div class="paginacao-container">
+
+                <span id="textoPaginacao">
+                    Carregando projetos...
+                </span>
+
+                <div class="paginacao-botoes">
+
+                    <button class="btn-pag"
+                        data-pagina="anterior"
+                        aria-label="Página anterior">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <button class="btn-pag ativo" data-pagina="1">1</button>
+
+                    <button class="btn-pag"
+                        data-pagina="proxima"
+                        aria-label="Próxima página">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="footer">
+
+        <div class="footer-content">
+
+            <div class="logo">
+                <img src="Vetorizado (1) (1).png"
+                    alt="Logo Instituto Elo"
+                    class="footer-logo">
+            </div>
+
+            <p class="slogan">
+                Conectando ideias, transformando realidades.
+            </p>
+
+            <div class="social-icons">
+
+                <a href="https://www.instagram.com/instituto_.elo/"
+                    aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="https://www.facebook.com/profile.php?id=61595034278434"
+                    aria-label="Facebook">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+
+                <a href="https://www.linkedin.com/company/instituto-elo-brasil/"
+                    aria-label="LinkedIn">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                </a>
+
+            </div>
+        </div>
+
+        <div class="navegaçao">
+            <ul>
+                <li><a href="explorar.html">Projetos</a></li>
+                <li><a href="index.html#como-funciona">Como funciona</a></li>
+                <li><a href="sobre.html">Sobre nós</a></li>
+            </ul>
+        </div>
+
+        <div class="institucional">
+            <ul>
+                <li><a href="transparencia.html">Transparência</a></li>
+                <li><a href="termos.html">Termos de uso</a></li>
+                <li><a href="politica.html">Política de privacidade</a></li>
+            </ul>
+        </div>
+
+        <div class="contato">
+            <p>contato@elo.com.br</p>
+            <p>(12) 92348-922067</p>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT DOS FAVORITOS -->
+    <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+
+        const grid = document.getElementById("gridFavoritos");
+        const botoesFiltro = document.querySelectorAll(".btn-filtro");
+        const ordenacao = document.querySelector(".select-ordenacao");
+        const textoPaginacao = document.getElementById("textoPaginacao");
+        const botoesPagina = document.querySelectorAll(".btn-pag");
+
+        const porPagina = 8;
+
+        let projetos = [];
+        let filtroAtual = "todos";
+        let paginaAtual = 1;
+
+        function escapar(valor) {
+            return String(valor ?? "").replace(/[&<>"']/g, caractere => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            })[caractere]);
+        }
+
+        function moeda(valor) {
+            return Number(valor || 0).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        }
+
+        function percentualProjeto(projeto) {
+            const meta = Number(projeto.meta_valor || 0);
+            const arrecadado = Number(projeto.valor_arrecadado || 0);
+
+            if (meta <= 0) return 0;
+
+            return Math.min(100, Math.round(arrecadado / meta * 100));
+        }
+
+        function projetoConcluido(projeto) {
+            const status = String(projeto.status || "").toLowerCase();
+
+            return status === "concluido"
+                || status === "concluído"
+                || percentualProjeto(projeto) >= 100;
+        }
+
+        function obterListaFiltrada() {
+            let lista = [...projetos];
+
+            if (filtroAtual === "andamento") {
+                lista = lista.filter(projeto => !projetoConcluido(projeto));
+            }
+
+            if (filtroAtual === "concluidos") {
+                lista = lista.filter(projeto => projetoConcluido(projeto));
+            }
+
+            if (ordenacao.value === "antigos") {
+                lista.reverse();
+            }
+
+            return lista;
+        }
+
+        function renderizar() {
+
+            const lista = obterListaFiltrada();
+
+            document.getElementById("count-todos").textContent =
+                projetos.length;
+
+            document.getElementById("count-andamento").textContent =
+                projetos.filter(p => !projetoConcluido(p)).length;
+
+            document.getElementById("count-concluidos").textContent =
+                projetos.filter(projetoConcluido).length;
+
+            const totalPaginas = Math.max(
+                1,
+                Math.ceil(lista.length / porPagina)
+            );
+
+            paginaAtual = Math.min(paginaAtual, totalPaginas);
+
+            if (lista.length === 0) {
+
+                grid.innerHTML = `
+                    <div class="mensagem-favoritos">
+                        <i class="fa-regular fa-heart"></i>
+                        <h3>${
+                            projetos.length === 0
+                                ? "Você ainda não tem favoritos"
+                                : "Nenhum projeto nesta categoria"
+                        }</h3>
+                        <p>Explore os projetos e favorite aqueles que chamarem sua atenção.</p>
+                        <a href="explorar.html">Explorar projetos</a>
+                    </div>
+                `;
+
+                textoPaginacao.textContent = "Mostrando 0 projetos";
+
+                atualizarBotoesPagina(1);
+
+                return;
+            }
+
+            const inicio = (paginaAtual - 1) * porPagina;
+            const pagina = lista.slice(inicio, inicio + porPagina);
+
+            grid.innerHTML = pagina.map(projeto => {
+
+                const id = Number(projeto.id);
+                const percentual = percentualProjeto(projeto);
+                const concluido = projetoConcluido(projeto);
+
+              const imagemBanco = projeto.imagem
+    ? String(projeto.imagem).trim().replace(/\\/g, "/")
+    : "";
+
+const imagem = imagemBanco
+    ? (
+        imagemBanco.startsWith("http://") ||
+        imagemBanco.startsWith("https://") ||
+        imagemBanco.startsWith("/")
+            ? imagemBanco
+            : imagemBanco.startsWith("uploads/")
+                ? imagemBanco
+                : "uploads/" + imagemBanco.replace(/^.*[\\/]/, "")
+    )
+    : "";
+
+const estiloImagem = imagem
+    ? `background-image: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,.25)), url('${imagem.replace(/'/g, "%27")}'); background-size: cover; background-position: center;`
+    : "";
+
+                return `
+                    <article class="card-projeto"
+                        data-id="${id}"
+                        data-status="${concluido ? "concluido" : "andamento"}">
+
+                        <div class="card-img-topo"
+                            style="${estiloImagem}">
+
+                            <button class="btn-favorito-card favorito-ativo"
+                                type="button"
+                                data-id="${id}"
+                                aria-label="Remover dos favoritos"
+                                title="Remover dos favoritos">
+
+                                <i class="fa-solid fa-heart"></i>
+
+                            </button>
+                        </div>
+
+                        <div class="card-info">
+
+                            <span class="tag-categoria">
+                                ${escapar(projeto.categoria || "Projeto")}
+                            </span>
+
+                            <h3>${escapar(projeto.titulo || "Projeto sem título")}</h3>
+
+                            <span class="autor">
+                                Por ${escapar(projeto.autor || "Criador")}
+                            </span>
+
+                            <div class="barra-progresso">
+                                <div class="progresso-preenchido"
+                                    style="width:${percentual}%">
+                                </div>
+                            </div>
+
+                            <div class="card-detalhes-valores">
+                                <span>${moeda(projeto.valor_arrecadado)} arrecadados</span>
+                                <span>${percentual}% da meta</span>
+                            </div>
+
+                        </div>
+                    </article>
+                `;
+            }).join("");
+
+            const primeiro = inicio + 1;
+            const ultimo = Math.min(inicio + porPagina, lista.length);
+
+            textoPaginacao.textContent =
+                `Mostrando ${primeiro} a ${ultimo} de ${lista.length} projetos`;
+
+            atualizarBotoesPagina(totalPaginas);
+        }
+
+        function atualizarBotoesPagina(totalPaginas) {
+
+            botoesPagina.forEach(botao => {
+
+                const valor = botao.dataset.pagina;
+                const numero = Number(valor);
+
+                if (valor === "anterior") {
+                    botao.disabled = paginaAtual <= 1;
+                } else if (valor === "proxima") {
+                    botao.disabled = paginaAtual >= totalPaginas;
+                } else {
+                    botao.classList.toggle("ativo", numero === paginaAtual);
+                    botao.disabled = numero > totalPaginas;
+                }
+            });
+
+            const botoesNumericos = document.querySelector(
+                '.paginacao-botoes .btn-pag[data-pagina="1"]'
+            );
+
+            if (botoesNumericos) {
+                botoesNumericos.textContent = String(paginaAtual);
+            }
+        }
+
+        // Carrega somente os favoritos do usuário conectado
+        async function carregarFavoritos() {
+
+            try {
+
+                const resposta = await fetch("listar_favoritos.php", {
+                    method: "GET",
+                    credentials: "same-origin",
+                    cache: "no-store"
+                });
+
+                if (resposta.status === 401) {
+                    window.location.replace(
+                        "login.html?voltar=" +
+                        encodeURIComponent("favoritos.html")
+                    );
+                    return;
+                }
+
+                if (!resposta.ok) {
+                    throw new Error("Erro HTTP " + resposta.status);
+                }
+
+                const dados = await resposta.json();
+
+                if (dados.logado !== true) {
+                    window.location.replace(
+                        "login.html?voltar=" +
+                        encodeURIComponent("favoritos.html")
+                    );
+                    return;
+                }
+
+                projetos = Array.isArray(dados.projetos)
+                    ? dados.projetos
+                    : [];
+
+                renderizar();
+
+            } catch (erro) {
+
+                console.error("Erro ao carregar favoritos:", erro);
+
+                grid.innerHTML = `
+                    <div class="mensagem-favoritos">
+                        <h3>Não foi possível carregar seus favoritos</h3>
+                        <p>Confira se o servidor está funcionando e tente novamente.</p>
+                    </div>
+                `;
+
+                textoPaginacao.textContent = "Erro ao carregar projetos";
+            }
+        }
+
+        // Remove o favorito também do banco de dados
+        grid.addEventListener("click", async function (evento) {
+
+            const botao = evento.target.closest(".btn-favorito-card");
+
+            if (!botao) return;
+
+            const id = Number(botao.dataset.id);
+
+            botao.disabled = true;
+
+            try {
+
+                const resposta = await fetch("alternar_favorito.php", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+                    },
+                    body: new URLSearchParams({
+                        projeto_id: String(id)
+                    })
+                });
+
+                if (resposta.status === 401) {
+                    window.location.replace(
+                        "login.html?voltar=" +
+                        encodeURIComponent("favoritos.html")
+                    );
+                    return;
+                }
+
+                if (!resposta.ok) {
+                    throw new Error("Não foi possível atualizar o favorito.");
+                }
+
+                // Confirma a alteração consultando novamente o banco
+                await carregarFavoritos();
+
+            } catch (erro) {
+
+                console.error("Erro ao remover favorito:", erro);
+
+                alert("Não foi possível remover este favorito. Tente novamente.");
+
+                botao.disabled = false;
+            }
+        });
+
+        // Filtros
+        botoesFiltro.forEach(botao => {
+
+            botao.addEventListener("click", function () {
+
+                botoesFiltro.forEach(item => item.classList.remove("ativo"));
+
+                this.classList.add("ativo");
+
+                filtroAtual = this.dataset.filtro;
+                paginaAtual = 1;
+
+                renderizar();
+            });
+        });
+
+        // Ordenação
+        ordenacao.addEventListener("change", function () {
+            paginaAtual = 1;
+            renderizar();
+        });
+
+        // Paginação
+        botoesPagina.forEach(botao => {
+
+            botao.addEventListener("click", function () {
+
+                const valor = this.dataset.pagina;
+                const totalPaginas = Math.max(
+                    1,
+                    Math.ceil(obterListaFiltrada().length / porPagina)
+                );
+
+                if (valor === "anterior" && paginaAtual > 1) {
+                    paginaAtual--;
+                } else if (
+                    valor === "proxima" &&
+                    paginaAtual < totalPaginas
+                ) {
+                    paginaAtual++;
+                } else if (!isNaN(Number(valor))) {
+                    paginaAtual = Number(valor);
+                }
+
+                renderizar();
+            });
+        });
+
+        await carregarFavoritos();
+    });
+    </script>
+
+</body>
+</html>
