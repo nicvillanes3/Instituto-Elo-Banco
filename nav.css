@@ -11,6 +11,10 @@
     display: flex;
     align-items: center;
 }
+.navbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
 
 .nav-links {
     display: flex;
@@ -46,8 +50,8 @@
     width: 60px;
     height: auto;
     margin-left: 40px;
+    margin-top: 8px;
 }
-
 .search-box {
     display: flex;
     align-items: center;

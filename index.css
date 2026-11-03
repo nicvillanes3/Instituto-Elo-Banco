@@ -1030,6 +1030,19 @@
 
 }
 
+
+/* Igualar a aparência dos links da navbar às outras páginas */
+/* Padronização dos links da navbar */
 .navbar .nav-links a {
-    font-weight: 520;
+    color: #000000 !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+.navbar .nav-links a:hover {
+    color: #075BE8 !important;
 }
