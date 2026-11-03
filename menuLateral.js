@@ -55,3 +55,16 @@ document.addEventListener("DOMContentLoaded", function() {
         cardIcon.id = "card-icon";
     }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const linkAdmin = document.getElementById("linkAdmin");
+
+    // Verifica se o usuário está logado e é administrador
+    if (window.Auth && typeof Auth.usuario === "function") {
+        const usuario = Auth.usuario();
+
+        if (usuario && usuario.tipo === "administrador") {
+            linkAdmin.style.display = "flex";
+        }
+    }
+});

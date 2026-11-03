@@ -42,6 +42,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         }, 2500);
     }
 
+    let perfil = {
+        nome: "",
+        email: "",
+        bio: "",
+        foto_perfil: null,
+        tipo: "apoiador",
+        criado_em: null
+    };
+
+    // =====================================================
+    // ATUALIZAR SESSÃO LOCAL
+    // =====================================================
+
     function atualizarSessaoLocal() {
         try {
             const sessao = JSON.parse(
@@ -59,14 +72,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    let perfil = {
-        nome: "",
-        email: "",
-        bio: "",
-        foto_perfil: null,
-        tipo: "apoiador",
-        criado_em: null
-    };
+    // =====================================================
+    // EXIBIR PAINEL ADMINISTRATIVO
+    // =====================================================
+
+    function atualizarMenuAdmin() {
+        const linkAdmin = $("linkAdmin");
+
+        if (!linkAdmin) return;
+
+        linkAdmin.style.display =
+            perfil.tipo === "administrador" ? "flex" : "none";
+    }
 
     // =====================================================
     // CARREGAR DADOS DO USUÁRIO
@@ -85,8 +102,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log("Status de dados_perfil.php:", resposta.status);
         console.log("URL de resposta:", resposta.url);
 
-        // Não apaga a sessão local automaticamente.
-        // Primeiro identifica se o PHP reconheceu a sessão.
         if (resposta.status === 401) {
             aviso("Sua sessão do servidor expirou. Entre novamente.");
 
@@ -288,7 +303,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         if ($("statPessoas")) {
-            // Valor provisório até integrar esse dado com o banco.
             $("statPessoas").textContent = 45;
         }
     }
@@ -781,6 +795,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     renderizarPerfil();
     renderizarNumeros();
     renderizarListas();
+    atualizarMenuAdmin();
 
     const abaInicial = window.location.hash.replace("#", "");
 
