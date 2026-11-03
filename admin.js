@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const feedback = document.getElementById('feedback');
@@ -16,18 +17,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Exibe mensagens na tela
     function showFeedback(message, type = 'error') {
+
+        if (!feedback) return;
+
         feedback.textContent = message;
         feedback.className = `alert ${type}`;
         feedback.hidden = false;
     }
 
+    // Esconde mensagens
     function hideFeedback() {
+
+        if (!feedback) return;
+
         feedback.hidden = true;
         feedback.textContent = '';
     }
 
     // Atualiza textos do painel
     function setText(id, value) {
+
         const element = document.getElementById(id);
 
         if (element) {
@@ -37,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mostra as campanhas na tabela
     function renderCampaigns(projects) {
+
+        if (!campaignTable) return;
 
         campaignTable.replaceChildren();
 
@@ -81,8 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         hideFeedback();
 
-        refreshButton.disabled = true;
-        refreshButton.textContent = 'Carregando...';
+        if (refreshButton) {
+            refreshButton.disabled = true;
+            refreshButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Carregando...';
+        }
 
         try {
 
@@ -137,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Number(data.total_usuarios || 0).toLocaleString('pt-BR')
             );
 
-            // Valores da legenda
+            // Valores da legenda financeira
             setText('legendElo', money(finance.total_elo));
 
             setText(
@@ -145,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 money(finance.total_campanhas)
             );
 
-            // Resumo do sistema
+            // Resumo de usuários e campanhas
             setText(
                 'summaryUsers',
                 Number(data.total_usuarios || 0).toLocaleString('pt-BR')
@@ -185,55 +198,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 error.message || 'Erro ao carregar o painel.'
             );
 
-            campaignTable.innerHTML = `
-                <tr>
-                    <td colspan="3" class="empty-cell">
-                        Não foi possível carregar as campanhas.
-                    </td>
-                </tr>
-            `;
+            if (campaignTable) {
+
+                campaignTable.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="empty-cell">
+                            Não foi possível carregar as campanhas.
+                        </td>
+                    </tr>
+                `;
+
+            }
 
         } finally {
 
-            refreshButton.disabled = false;
-            refreshButton.textContent = '↻ Atualizar dados';
+            if (refreshButton) {
+                refreshButton.disabled = false;
+                refreshButton.innerHTML = '<i class="fa-solid fa-rotate"></i> Atualizar dados';
+            }
 
         }
     }
 
     // Botão atualizar
-    refreshButton.addEventListener('click', loadDashboard);
+    if (refreshButton) {
+        refreshButton.addEventListener('click', loadDashboard);
+    }
 
     // Menu para celular
-    document.getElementById('mobileMenu').addEventListener('click', () => {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const sidebar = document.getElementById('sidebar');
 
-        document.getElementById('sidebar').classList.toggle('open');
+    if (mobileMenu && sidebar) {
 
-    });
+        mobileMenu.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+    }
 
     // Navegação lateral
-    document.querySelectorAll('.nav-item').forEach((link) => {
+    document.querySelectorAll('.barra-lateral a[data-secao]').forEach((link) => {
 
         link.addEventListener('click', () => {
 
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            link.classList.add('active');
-
-            document.getElementById('sidebar').classList.remove('open');
+            if (sidebar) {
+                sidebar.classList.remove('open');
+            }
 
         });
 
     });
 
     // Sair da conta
-    document.getElementById('logoutButton').addEventListener('click', () => {
+    const logoutButton = document.getElementById('logoutButton');
 
-        window.location.href = 'logout.php';
+    if (logoutButton) {
 
-    });
+        logoutButton.addEventListener('click', () => {
+
+            if (window.Auth && typeof Auth.sair === 'function') {
+                Auth.sair();
+            } else {
+                console.error('A função Auth.sair() não está disponível.');
+            }
+
+        });
+
+    }
 
     // Carrega os dados assim que a página abre
     loadDashboard();

@@ -786,3 +786,60 @@ tbody td:last-child {
         border-radius: 12px;
     }
 }
+
+
+/* ===== NAVEGAÇÃO ENTRE SEÇÕES DO ADMIN ===== */
+
+.secao-admin {
+    display: none;
+    width: 100%;
+}
+
+.secao-admin.ativa {
+    display: block;
+    animation: aparecerSecao 0.25s ease;
+}
+
+@keyframes aparecerSecao {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ajuste dos conteúdos quando aparecem individualmente */
+
+.secao-admin > .content-card {
+    width: 100%;
+}
+
+.secao-admin .campaigns-card,
+.secao-admin .finance-card {
+    margin-bottom: 20px;
+}
+
+.secao-admin .summary-card {
+    margin-bottom: 20px;
+}
+
+/* Mantém o resumo organizado nas abas */
+
+#usuarios .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#doacoes .summary-grid {
+    grid-template-columns: 1fr;
+}
+
+@media (max-width: 760px) {
+    #usuarios .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 17px;
+    }
+}

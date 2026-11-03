@@ -16,11 +16,11 @@
 
     <script src="auth.js"></script>
     <script src="admin.js" defer></script>
+    <script src="navegacaoAdmin.js" defer></script>
 </head>
 
 <body>
 
-    <!-- NAVBAR ORIGINAL DO ELO -->
     <header>
         <nav class="navbar" id="navbar"></nav>
     </header>
@@ -32,27 +32,27 @@
 
             <div class="barra-lateral">
 
-                <a href="#inicio" class="active">
+                <a href="#inicio" class="active" data-secao="inicio">
                     <i class="fa-solid fa-chart-pie"></i>
                     Visão geral
                 </a>
 
-                <a href="#campanhas">
+                <a href="#campanhas" data-secao="campanhas">
                     <i class="fa-solid fa-folder-open"></i>
                     Campanhas
                 </a>
 
-                <a href="#financeiro">
+                <a href="#financeiro" data-secao="financeiro">
                     <i class="fa-solid fa-dollar-sign"></i>
                     Financeiro
                 </a>
 
-                <a href="#usuarios">
+                <a href="#usuarios" data-secao="usuarios">
                     <i class="fa-solid fa-users"></i>
                     Usuários
                 </a>
 
-                <a href="#doacoes">
+                <a href="#doacoes" data-secao="doacoes">
                     <i class="fa-regular fa-heart"></i>
                     Doações
                 </a>
@@ -75,9 +75,9 @@
         </aside>
 
         <!-- CONTEÚDO PRINCIPAL -->
-        <main class="admin-main" id="inicio">
+        <main class="admin-main">
 
-            <!-- TÍTULO DA PÁGINA -->
+            <!-- CABEÇALHO FIXO -->
             <section class="page-heading">
 
                 <button class="mobile-menu" id="mobileMenu"
@@ -100,125 +100,164 @@
 
             </section>
 
-            <!-- BOAS-VINDAS -->
-            <section class="welcome-row">
+            <!-- ================= VISÃO GERAL ================= -->
+            <section class="secao-admin ativa" id="inicio">
 
-                <div>
-                    <h2>Bem-vinda ao painel do Elo!</h2>
+                <section class="welcome-row">
 
-                    <p>
-                        Acompanhe campanhas, doações e os recursos
-                        destinados ao Instituto.
-                    </p>
+                    <div>
+                        <h2>Bem-vinda ao painel do Elo!</h2>
+
+                        <p>
+                            Acompanhe campanhas, doações e os recursos
+                            destinados ao Instituto.
+                        </p>
+                    </div>
+
+                    <button class="refresh-button" id="refreshButton" type="button">
+                        <i class="fa-solid fa-rotate"></i>
+                        Atualizar dados
+                    </button>
+
+                </section>
+
+                <!-- MENSAGENS -->
+                <div class="alert" id="feedback"
+                    role="status" aria-live="polite" hidden>
                 </div>
 
-                <button class="refresh-button" id="refreshButton" type="button">
-                    <i class="fa-solid fa-rotate"></i>
-                    Atualizar dados
-                </button>
+                <!-- INDICADORES -->
+                <section class="stats-grid">
+
+                    <article class="stat-card card-elo">
+
+                        <div class="stat-icon icon-yellow">
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+
+                        <div>
+                            <p>Total destinado ao Elo</p>
+                            <strong id="totalElo">R$ 0,00</strong>
+                            <small>5% das doações confirmadas</small>
+                        </div>
+
+                    </article>
+
+                    <article class="stat-card">
+
+                        <div class="stat-icon icon-blue">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+
+                        <div>
+                            <p>Total arrecadado</p>
+                            <strong id="totalArrecadado">R$ 0,00</strong>
+                            <small>Doações confirmadas</small>
+                        </div>
+
+                    </article>
+
+                    <article class="stat-card">
+
+                        <div class="stat-icon icon-green">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                        </div>
+
+                        <div>
+                            <p>Destinado às campanhas</p>
+                            <strong id="totalCampanhas">R$ 0,00</strong>
+                            <small>95% das doações confirmadas</small>
+                        </div>
+
+                    </article>
+
+                    <article class="stat-card">
+
+                        <div class="stat-icon icon-purple">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+
+                        <div>
+                            <p>Campanhas cadastradas</p>
+                            <strong id="totalProjetos">0</strong>
+                            <small>Projetos no banco de dados</small>
+                        </div>
+
+                    </article>
+
+                    <article class="stat-card">
+
+                        <div class="stat-icon icon-orange">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+
+                        <div>
+                            <p>Usuários ativos</p>
+                            <strong id="totalUsuarios">0</strong>
+                            <small>Contas ativas</small>
+                        </div>
+
+                    </article>
+
+                </section>
 
             </section>
 
-            <!-- MENSAGENS -->
-            <div class="alert" id="feedback"
-                role="status" aria-live="polite" hidden>
-            </div>
+            <!-- ================= CAMPANHAS ================= -->
+            <section class="secao-admin" id="campanhas">
 
-            <!-- INDICADORES -->
-            <section class="stats-grid">
+                <article class="content-card campaigns-card">
 
-                <!-- TOTAL ELO -->
-                <article class="stat-card card-elo">
+                    <div class="section-heading">
 
-                    <div class="stat-icon icon-yellow">
-                        <i class="fa-solid fa-star"></i>
+                        <div>
+                            <h2>Campanhas</h2>
+
+                            <p>
+                                Acompanhe os valores arrecadados por projeto.
+                            </p>
+                        </div>
+
+                        <span class="tag" id="campaignCount">
+                            0 campanhas
+                        </span>
+
                     </div>
 
-                    <div>
-                        <p>Total destinado ao Elo</p>
+                    <div class="table-wrap">
 
-                        <strong id="totalElo">R$ 0,00</strong>
+                        <table>
 
-                        <small>5% das doações confirmadas</small>
-                    </div>
+                            <thead>
+                                <tr>
+                                    <th>Projeto</th>
+                                    <th>Arrecadado</th>
+                                    <th>Parte do Elo</th>
+                                </tr>
+                            </thead>
 
-                </article>
+                            <tbody id="campaignTable">
 
-                <!-- TOTAL ARRECADADO -->
-                <article class="stat-card">
+                                <tr>
+                                    <td colspan="3" class="empty-cell">
+                                        Carregando campanhas...
+                                    </td>
+                                </tr>
 
-                    <div class="stat-icon icon-blue">
-                        <i class="fa-solid fa-sack-dollar"></i>
-                    </div>
+                            </tbody>
 
-                    <div>
-                        <p>Total arrecadado</p>
+                        </table>
 
-                        <strong id="totalArrecadado">R$ 0,00</strong>
-
-                        <small>Doações confirmadas</small>
-                    </div>
-
-                </article>
-
-                <!-- TOTAL CAMPANHAS -->
-                <article class="stat-card">
-
-                    <div class="stat-icon icon-green">
-                        <i class="fa-solid fa-arrow-trend-up"></i>
-                    </div>
-
-                    <div>
-                        <p>Destinado às campanhas</p>
-
-                        <strong id="totalCampanhas">R$ 0,00</strong>
-
-                        <small>95% das doações confirmadas</small>
-                    </div>
-
-                </article>
-
-                <!-- QUANTIDADE DE PROJETOS -->
-                <article class="stat-card">
-
-                    <div class="stat-icon icon-purple">
-                        <i class="fa-solid fa-folder-open"></i>
-                    </div>
-
-                    <div>
-                        <p>Campanhas cadastradas</p>
-
-                        <strong id="totalProjetos">0</strong>
-
-                        <small>Projetos no banco de dados</small>
-                    </div>
-
-                </article>
-
-                <!-- QUANTIDADE DE USUÁRIOS -->
-                <article class="stat-card">
-
-                    <div class="stat-icon icon-orange">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-
-                    <div>
-                        <p>Usuários ativos</p>
-
-                        <strong id="totalUsuarios">0</strong>
-
-                        <small>Contas ativas</small>
                     </div>
 
                 </article>
 
             </section>
 
-            <!-- FINANCEIRO E CAMPANHAS -->
-            <section class="dashboard-grid">
+            <!-- ================= FINANCEIRO ================= -->
+            <section class="secao-admin" id="financeiro">
 
-                <!-- DISTRIBUIÇÃO FINANCEIRA -->
-                <article class="content-card finance-card" id="financeiro">
+                <article class="content-card finance-card">
 
                     <div class="section-heading">
 
@@ -280,48 +319,52 @@
 
                 </article>
 
-                <!-- TABELA DE CAMPANHAS -->
-                <article class="content-card campaigns-card" id="campanhas">
+            </section>
+
+            <!-- ================= USUÁRIOS ================= -->
+            <section class="secao-admin" id="usuarios">
+
+                <article class="content-card summary-card">
 
                     <div class="section-heading">
 
                         <div>
-                            <h2>Campanhas</h2>
+                            <h2>Usuários</h2>
 
                             <p>
-                                Acompanhe os valores arrecadados por projeto.
+                                Informações sobre as contas cadastradas na plataforma.
                             </p>
                         </div>
 
-                        <span class="tag" id="campaignCount">
-                            0 campanhas
-                        </span>
-
                     </div>
 
-                    <div class="table-wrap">
+                    <div class="summary-grid">
 
-                        <table>
+                        <div class="summary-item">
 
-                            <thead>
-                                <tr>
-                                    <th>Projeto</th>
-                                    <th>Arrecadado</th>
-                                    <th>Parte do Elo</th>
-                                </tr>
-                            </thead>
+                            <span class="summary-icon icon-blue">
+                                <i class="fa-solid fa-users"></i>
+                            </span>
 
-                            <tbody id="campaignTable">
+                            <div>
+                                <strong id="summaryUsers">0</strong>
+                                <p>Usuários ativos</p>
+                            </div>
 
-                                <tr>
-                                    <td colspan="3" class="empty-cell">
-                                        Carregando campanhas...
-                                    </td>
-                                </tr>
+                        </div>
 
-                            </tbody>
+                        <div class="summary-item">
 
-                        </table>
+                            <span class="summary-icon icon-purple">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </span>
+
+                            <div>
+                                <strong id="summaryProjects">0</strong>
+                                <p>Campanhas cadastradas</p>
+                            </div>
+
+                        </div>
 
                     </div>
 
@@ -329,66 +372,41 @@
 
             </section>
 
-            <!-- RESUMO DO SISTEMA -->
-            <section class="content-card summary-card" id="usuarios">
+            <!-- ================= DOAÇÕES ================= -->
+            <section class="secao-admin" id="doacoes">
 
-                <div class="section-heading">
+                <article class="content-card summary-card">
 
-                    <div>
-                        <h2>Resumo do sistema</h2>
-
-                        <p>
-                            Informações gerais da plataforma.
-                        </p>
-                    </div>
-
-                </div>
-
-                <div class="summary-grid">
-
-                    <!-- USUÁRIOS -->
-                    <div class="summary-item">
-
-                        <span class="summary-icon icon-blue">
-                            <i class="fa-solid fa-users"></i>
-                        </span>
+                    <div class="section-heading">
 
                         <div>
-                            <strong id="summaryUsers">0</strong>
-                            <p>Usuários ativos</p>
+                            <h2>Doações</h2>
+
+                            <p>
+                                Resumo dos valores recebidos pela plataforma.
+                            </p>
                         </div>
 
                     </div>
 
-                    <!-- PROJETOS -->
-                    <div class="summary-item">
+                    <div class="summary-grid">
 
-                        <span class="summary-icon icon-purple">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </span>
+                        <div class="summary-item">
 
-                        <div>
-                            <strong id="summaryProjects">0</strong>
-                            <p>Campanhas cadastradas</p>
+                            <span class="summary-icon icon-yellow">
+                                <i class="fa-solid fa-hand-holding-heart"></i>
+                            </span>
+
+                            <div>
+                                <strong id="summaryDonations">R$ 0,00</strong>
+                                <p>Doações confirmadas</p>
+                            </div>
+
                         </div>
 
                     </div>
 
-                    <!-- DOAÇÕES -->
-                    <div class="summary-item" id="doacoes">
-
-                        <span class="summary-icon icon-yellow">
-                            <i class="fa-solid fa-hand-holding-heart"></i>
-                        </span>
-
-                        <div>
-                            <strong id="summaryDonations">R$ 0,00</strong>
-                            <p>Doações confirmadas</p>
-                        </div>
-
-                    </div>
-
-                </div>
+                </article>
 
             </section>
 
