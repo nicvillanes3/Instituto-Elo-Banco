@@ -1,5 +1,6 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+
     // =====================================================
     // CONFIGURAÇÕES
     // =====================================================
@@ -24,6 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnDoar = document.getElementById("btnDoar");
     const valorCustom = document.getElementById("valorCustom");
     const retorno = document.getElementById("retorno");
+
+    console.log("Projeto.js iniciado.");
+    console.log("ID do projeto:", projetoId);
 
     // =====================================================
     // FUNÇÕES AUXILIARES
@@ -62,14 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function escaparHTML(texto) {
-        return String(texto ?? "").replace(/[&<>"']/g, caractere => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        })[caractere]);
+    function preencher(id, valor) {
+        const elemento = document.getElementById(id);
+
+        if (!elemento) {
+            console.warn(`Elemento #${id} não encontrado no HTML.`);
+            return;
+        }
+
+        elemento.textContent = valor ?? "";
     }
 
     // =====================================================
@@ -77,84 +82,217 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     async function carregarProjeto() {
+        const conteudo = document.getElementById("conteudo");
+        const naoEncontrado = document.getElementById("naoEncontrado");
+
         if (!projetoId) {
-            mostrarMensagem("Projeto não identificado.", true);
+            console.error("Nenhum ID de projeto foi informado na URL.");
+
+            if (conteudo) conteudo.hidden = true;
+            if (naoEncontrado) naoEncontrado.hidden = false;
+
             return;
         }
 
         try {
+            console.log("Buscando projeto no PHP...");
+
             const resposta = await fetch(
                 `${API_PROJETO}?id=${encodeURIComponent(projetoId)}`,
-                { credentials: "same-origin" }
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    cache: "no-store"
+                }
             );
 
+            console.log("Status da resposta:", resposta.status);
+
             if (!resposta.ok) {
-                throw new Error("Não foi possível carregar o projeto.");
+                throw new Error("Erro ao acessar buscar_projeto.php.");
             }
 
             const dados = await resposta.json();
 
-            if (dados.sucesso === false || dados.erro) {
-                throw new Error(dados.mensagem || dados.erro ||
-                    "Projeto não encontrado.");
+            console.log("Dados recebidos:", dados);
+
+            if (!dados.sucesso || !dados.projeto) {
+                throw new Error(
+                    dados.mensagem || dados.erro || "Projeto não encontrado."
+                );
             }
 
-            projetoAtual = dados.projeto || dados;
+            projetoAtual = dados.projeto;
+
+            console.log("Projeto carregado:", projetoAtual);
 
             renderizarProjeto(projetoAtual);
+
+            if (conteudo) conteudo.hidden = false;
+            if (naoEncontrado) naoEncontrado.hidden = true;
+
+            console.log("Projeto renderizado com sucesso.");
+
         } catch (erro) {
             console.error("Erro ao carregar projeto:", erro);
-            mostrarMensagem(
-                erro.message || "Erro ao carregar o projeto.",
-                true
-            );
+
+            if (conteudo) conteudo.hidden = true;
+            if (naoEncontrado) naoEncontrado.hidden = false;
         }
     }
 
+    // =====================================================
+    // RENDERIZAR PROJETO
+    // =====================================================
+
     function renderizarProjeto(projeto) {
-        // Atualiza os elementos que tenham estes IDs.
-        const campos = {
-            tituloProjeto: projeto.titulo,
-            descricaoProjeto: projeto.descricao,
-            categoriaProjeto: projeto.categoria,
-            valorArrecadado: dinheiro(projeto.valor_arrecadado),
-            metaProjeto: dinheiro(projeto.meta_valor),
-            nomeCriador: projeto.nome_criador || projeto.criador_nome
-        };
 
-        Object.entries(campos).forEach(([id, valor]) => {
-            const elemento = document.getElementById(id);
+        console.log("Executando renderizarProjeto:", projeto);
 
-            if (elemento && valor !== undefined && valor !== null) {
-                elemento.textContent = valor;
-            }
-        });
+        // Dados principais
+        preencher("titulo", projeto.titulo);
+        preencher("tag", projeto.categoria);
+        preencher("descricao", projeto.desc);
+        preencher("local", projeto.local);
+        preencher("nivel", projeto.nivel);
 
-        const titulo = document.querySelector("[data-projeto-titulo]");
-        if (titulo) titulo.textContent = projeto.titulo || "";
+        // Arrecadação
+        preencher("arrecadado", dinheiro(projeto.arrecadado));
+        preencher("meta", dinheiro(projeto.meta));
+        preencher("pct", `${projeto.pct || 0}%`);
 
-        const descricao = document.querySelector("[data-projeto-descricao]");
-        if (descricao) descricao.textContent = projeto.descricao || "";
+        // Apoiadores e prazo
+        preencher("apoiadores", projeto.apoiadores || 0);
 
-        const imagem = document.querySelector("[data-projeto-imagem]");
-        if (imagem && projeto.imagem) {
-            imagem.src = projeto.imagem;
-            imagem.alt = projeto.titulo || "Imagem do projeto";
+        preencher(
+            "dias",
+            Number(projeto.dias) > 0
+                ? projeto.dias
+                : "Encerrado"
+        );
+
+        preencher(
+            "prazoMeta",
+            Number(projeto.dias) > 0
+                ? "Meta do projeto"
+                : "Prazo encerrado"
+        );
+
+        // Imagem da capa
+        const capa = document.getElementById("capa");
+
+        if (capa && projeto.img) {
+            capa.style.backgroundImage = `url("${projeto.img}")`;
+            capa.style.backgroundSize = "cover";
+            capa.style.backgroundPosition = "center";
         }
 
-        const arrecadado = Number(projeto.valor_arrecadado || 0);
-        const meta = Number(projeto.meta_valor || 0);
-        const porcentagem = meta > 0
-            ? Math.min((arrecadado / meta) * 100, 100)
-            : 0;
+        // Barra de progresso
+        const barra = document.getElementById("barra");
 
-        document.querySelectorAll("[data-progresso]").forEach(elemento => {
-            elemento.style.width = `${porcentagem}%`;
-        });
+        if (barra) {
+            const porcentagem = Math.min(
+                Math.max(Number(projeto.pct) || 0, 0),
+                100
+            );
 
-        document.querySelectorAll("[data-progresso-texto]").forEach(elemento => {
-            elemento.textContent = `${Math.round(porcentagem)}%`;
-        });
+            barra.style.width = `${porcentagem}%`;
+        }
+
+        // Breadcrumb
+        preencher("bcTitulo", projeto.titulo);
+        preencher("bcCategoria", projeto.categoria);
+
+        // Sobre o projeto
+        const textoSobre = document.getElementById("textoSobre");
+
+        if (textoSobre) {
+            const textos = Array.isArray(projeto.sobre)
+                ? projeto.sobre
+                : [projeto.desc || ""];
+
+            textoSobre.textContent = textos.join("\n\n");
+        }
+
+        // Destaques
+        const destaques = document.getElementById("destaques");
+
+        if (destaques) {
+            destaques.innerHTML = "";
+
+            (Array.isArray(projeto.destaques) ? projeto.destaques : [])
+                .forEach(item => {
+                    const elemento = document.createElement("div");
+                    elemento.className = "destaque";
+                    elemento.textContent = item;
+                    destaques.appendChild(elemento);
+                });
+        }
+
+        // Atualizações
+        const atualizacoes = Array.isArray(projeto.atualizacoes)
+            ? projeto.atualizacoes
+            : [];
+
+        preencher("contAtualizacoes", atualizacoes.length);
+
+        const listaAtualizacoes =
+            document.getElementById("listaAtualizacoes");
+
+        const atualizacaoRecente =
+            document.getElementById("atualizacaoRecente");
+
+        if (listaAtualizacoes) {
+            listaAtualizacoes.innerHTML = "";
+
+            if (atualizacoes.length === 0) {
+                listaAtualizacoes.textContent =
+                    "Ainda não há atualizações neste projeto.";
+            } else {
+                atualizacoes.forEach(item => {
+                    const elemento = document.createElement("p");
+
+                    elemento.textContent =
+                        item.titulo ||
+                        item.descricao ||
+                        item.texto ||
+                        "Atualização do projeto";
+
+                    listaAtualizacoes.appendChild(elemento);
+                });
+            }
+        }
+
+        if (atualizacaoRecente) {
+            if (atualizacoes.length > 0) {
+                const primeira = atualizacoes[0];
+
+                atualizacaoRecente.textContent =
+                    primeira.titulo ||
+                    primeira.descricao ||
+                    primeira.texto ||
+                    "Nova atualização";
+            } else {
+                atualizacaoRecente.textContent =
+                    "Nenhuma atualização publicada ainda.";
+            }
+        }
+
+        // Apoiadores
+        preencher("contApoiadores", projeto.apoiadores || 0);
+
+        const listaApoiadores =
+            document.getElementById("listaApoiadores");
+
+        if (listaApoiadores) {
+            listaApoiadores.textContent =
+                Number(projeto.apoiadores) > 0
+                    ? `${projeto.apoiadores} pessoas já apoiaram este projeto.`
+                    : "Este projeto ainda não possui apoiadores confirmados.";
+        }
+
+        // Título da aba do navegador
+        document.title = `${projeto.titulo} | Instituto Elo`;
     }
 
     // =====================================================
@@ -162,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const botoesAbas = document.querySelectorAll("[data-aba]");
-    const paineisAbas = document.querySelectorAll("[data-conteudo-aba]");
+    const paineisAbas = document.querySelectorAll(".aba-conteudo");
 
     botoesAbas.forEach(botao => {
         botao.addEventListener("click", () => {
@@ -173,7 +311,10 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             paineisAbas.forEach(painel => {
-                painel.hidden = painel.dataset.conteudoAba !== aba;
+                painel.classList.toggle(
+                    "ativo",
+                    painel.id === `aba-${aba}`
+                );
             });
         });
     });
@@ -184,8 +325,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function obterFavoritos() {
         try {
-            const dados = JSON.parse(localStorage.getItem("eloFavoritos"));
+            const dados = JSON.parse(
+                localStorage.getItem("eloFavoritos")
+            );
+
             return Array.isArray(dados) ? dados : [];
+
         } catch {
             return [];
         }
@@ -263,13 +408,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // =====================================================
-    // SELEÇÃO DO VALOR DA DOAÇÃO
+    // VALOR DA DOAÇÃO
     // =====================================================
 
     function lerValorDigitado() {
         if (!valorCustom) return 0;
 
-        // Aceita valores como 50, 50,00 ou 1.250,50.
         let texto = valorCustom.value.trim()
             .replace(/\s/g, "")
             .replace(/^R\$/i, "");
@@ -294,7 +438,8 @@ document.addEventListener("DOMContentLoaded", () => {
             boleto: "boleto"
         };
 
-        btnDoar.textContent = `Doar agora com ${nomes[metodoSelecionado]}`;
+        btnDoar.textContent =
+            `Doar agora com ${nomes[metodoSelecionado]}`;
     }
 
     function selecionarValor(botao) {
@@ -306,6 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
             valorSelecionado = lerValorDigitado();
 
             if (valorCustom) valorCustom.focus();
+
         } else {
             valorSelecionado = Number(botao.dataset.valor);
 
@@ -316,7 +462,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.querySelectorAll(".valor[data-valor]").forEach(botao => {
-        botao.addEventListener("click", () => selecionarValor(botao));
+        botao.addEventListener("click", () => {
+            selecionarValor(botao);
+        });
     });
 
     if (valorCustom) {
@@ -334,7 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =====================================================
-    // SELEÇÃO DO MÉTODO DE PAGAMENTO
+    // MÉTODO DE PAGAMENTO
     // =====================================================
 
     document.querySelectorAll(".metodo[data-metodo]").forEach(botao => {
@@ -357,7 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
     atualizarBotaoDoar();
 
     // =====================================================
-    // DOAÇÃO: UM ÚNICO EVENTO DE CLIQUE
+    // REGISTRAR DOAÇÃO
     // =====================================================
 
     if (btnDoar) {
@@ -404,7 +552,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (!paginasPagamento[metodoSelecionado]) {
-                mostrarMensagem("Selecione um método de pagamento.", true);
+                mostrarMensagem(
+                    "Selecione um método de pagamento.",
+                    true
+                );
                 return;
             }
 
@@ -437,7 +588,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 }
 
-                // O ID deve vir do PHP após salvar a doação.
                 const doacaoId = resultado.doacao_id;
 
                 if (!doacaoId || !/^\d+$/.test(String(doacaoId))) {
@@ -446,13 +596,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 }
 
-                // Redireciona usando doacao_id, nunca id do projeto.
                 const destino = new URL(
                     paginasPagamento[metodoSelecionado],
                     window.location.href
                 );
 
-                destino.searchParams.set("doacao_id", String(doacaoId));
+                destino.searchParams.set(
+                    "doacao_id",
+                    String(doacaoId)
+                );
 
                 window.location.assign(destino.href);
 
@@ -477,4 +629,5 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     carregarProjeto();
+
 });
