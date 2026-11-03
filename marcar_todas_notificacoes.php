@@ -1,6 +1,7 @@
 
 <?php
 session_start();
+
 header('Content-Type: application/json; charset=utf-8');
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -18,18 +19,46 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once 'conexao.php';
 
 try {
-    $consulta = $pdo->prepare("
+    $usuarioId = (int) $_SESSION['usuario_id'];
+
+    $pdo->beginTransaction();
+
+    // Marca as notificações individuais.
+    $individuais = $pdo->prepare("
         UPDATE notificacoes
         SET lida = 1
-        WHERE usuario_id = ? AND lida = 0
+        WHERE usuario_id = ?
+        AND lida = 0
     ");
 
-    $consulta->execute([(int) $_SESSION['usuario_id']]);
+    $individuais->execute([$usuarioId]);
+
+    // Marca as notificações gerais para esta conta.
+    $gerais = $pdo->prepare("
+        INSERT INTO notificacoes_gerais_lidas
+            (notificacao_id, usuario_id)
+        SELECT
+            ng.id,
+            ?
+        FROM notificacoes_gerais ng
+        ON DUPLICATE KEY UPDATE
+            lida_em = CURRENT_TIMESTAMP
+    ");
+
+    $gerais->execute([$usuarioId]);
+
+    $pdo->commit();
 
     echo json_encode(['sucesso' => true]);
 
-} catch (PDOException $e) {
+} catch (Throwable $e) {
+
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
     error_log('Erro ao marcar todas as notificações: ' . $e->getMessage());
+
     http_response_code(500);
     echo json_encode(['sucesso' => false]);
 }

@@ -20,10 +20,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     const dataBR = data => {
         if (!data) return "";
 
-        const partes = String(data).split("-");
+        const valor = String(data);
+
+        // Formato de data recebido do MySQL: YYYY-MM-DD ou YYYY-MM-DD HH:MM:SS
+        const partes = valor.substring(0, 10).split("-");
+
         return partes.length === 3
             ? partes.reverse().join("/")
-            : data;
+            : valor;
     };
 
     function aviso(texto) {
@@ -49,6 +53,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         foto_perfil: null,
         tipo: "apoiador",
         criado_em: null
+    };
+
+    // =====================================================
+    // ATIVIDADES DO USUÁRIO
+    // =====================================================
+
+    let criados = [];
+    let apoios = [];
+
+    let estatisticas = {
+        total_projetos: 0,
+        total_apoiados: 0,
+        total_doado: 0
     };
 
     // =====================================================
@@ -104,11 +121,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (resposta.status === 401) {
             aviso("Sua sessão do servidor expirou. Entre novamente.");
-
-            console.error(
-                "O PHP retornou 401. Verifique a sessão em dados_perfil.php."
-            );
-
+            console.error("O PHP retornou 401. Verifique a sessão.");
             return;
         }
 
@@ -159,69 +172,115 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // =====================================================
-    // PROJETOS E DOAÇÕES LOCAIS
+    // CARREGAR PROJETOS E DOAÇÕES DO BANCO DE DADOS
     // =====================================================
 
-    const CHAVE_PAINEL = "eloPainelCriador";
+    try {
+        const resposta = await fetch("dados_atividade_perfil.php", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            },
+            cache: "no-store"
+        });
 
-    const ler = (chave, padrao) => {
-        try {
-            const valor = JSON.parse(localStorage.getItem(chave));
-            return valor ?? padrao;
-        } catch (erro) {
-            return padrao;
-        }
-    };
-
-    const painel = ler(CHAVE_PAINEL, { edicoes: {} });
-
-    const idsProjetos = typeof MEUS_PROJETOS !== "undefined"
-        ? MEUS_PROJETOS
-        : [];
-
-    const listaProjetos = typeof projetos !== "undefined"
-        ? projetos
-        : [];
-
-    const criados = idsProjetos
-        .map(id => listaProjetos.find(
-            projeto => String(projeto.id) === String(id)
-        ))
-        .filter(Boolean);
-
-    criados.forEach(projeto => {
-        const edicao = (painel.edicoes || {})[projeto.id];
-
-        if (edicao) {
-            Object.assign(projeto, edicao);
-
-            if (Number(projeto.meta) > 0) {
-                projeto.pct = Math.min(
-                    100,
-                    Math.round(
-                        Number(projeto.arrecadado || 0) /
-                        Number(projeto.meta) * 100
-                    )
-                );
-            }
-        }
-    });
-
-    const doacoes = typeof todasAsDoacoes === "function"
-        ? todasAsDoacoes()
-        : [];
-
-    const apoios = doacoes
-        .map(doacao => ({
-            ...doacao,
-            projeto: listaProjetos.find(
-                projeto => String(projeto.id) === String(doacao.id)
-            )
-        }))
-        .filter(doacao => doacao.projeto)
-        .sort((a, b) =>
-            String(b.data || "").localeCompare(String(a.data || ""))
+        console.log(
+            "Status de dados_atividade_perfil.php:",
+            resposta.status
         );
+
+        const tipoResposta = resposta.headers.get("content-type") || "";
+
+        if (!tipoResposta.includes("application/json")) {
+            const conteudo = await resposta.text();
+
+            console.error(
+                "A resposta de dados_atividade_perfil.php não é JSON:",
+                conteudo.slice(0, 500)
+            );
+
+            throw new Error(
+                "O servidor não retornou JSON ao carregar as atividades."
+            );
+        }
+
+        const dadosAtividade = await resposta.json();
+
+        if (resposta.status === 401) {
+            aviso("Sua sessão expirou. Entre novamente.");
+            return;
+        }
+
+        if (!resposta.ok) {
+            throw new Error(
+                dadosAtividade.erro ||
+                "Não foi possível carregar suas atividades."
+            );
+        }
+
+        // Projetos criados pelo usuário
+        criados = (dadosAtividade.projetos || []).map(projeto => {
+            const meta = Number(projeto.meta_valor || 0);
+            const arrecadado = Number(projeto.valor_arrecadado || 0);
+
+            const percentual = meta > 0
+                ? Math.min(100, Math.round(arrecadado / meta * 100))
+                : 0;
+
+            return {
+                ...projeto,
+                id: projeto.id,
+                titulo: projeto.titulo || "Projeto sem título",
+                org: projeto.categoria || "Projeto",
+                img: projeto.imagem || "",
+                meta: meta,
+                arrecadado: arrecadado,
+                pct: percentual
+            };
+        });
+
+        // Doações feitas pelo usuário
+        apoios = (dadosAtividade.doacoes || []).map(doacao => {
+            const projetoId = doacao.projeto_id;
+
+            return {
+                ...doacao,
+                id: projetoId,
+                valor: Number(doacao.valor || 0),
+                data: doacao.data_doacao || "",
+                projeto: {
+                    id: projetoId,
+                    titulo: doacao.projeto_titulo || "Projeto",
+                    img: doacao.projeto_imagem || "",
+                    autor: "",
+                    status: ""
+                }
+            };
+        });
+
+        // Estatísticas calculadas pelo PHP
+        estatisticas = {
+            total_projetos: Number(
+                dadosAtividade.estatisticas?.total_projetos ?? criados.length
+            ),
+            total_apoiados: Number(
+                dadosAtividade.estatisticas?.total_apoiados ?? 0
+            ),
+            total_doado: Number(
+                dadosAtividade.estatisticas?.total_doado ?? 0
+            )
+        };
+
+    } catch (erro) {
+        console.error("Erro ao carregar atividades:", erro);
+
+        // Mantém o perfil disponível, mas informa o problema.
+        aviso(
+            erro.message ||
+            "Não foi possível carregar os projetos e as doações."
+        );
+    }
 
     // =====================================================
     // RENDERIZAR PERFIL
@@ -283,27 +342,25 @@ document.addEventListener("DOMContentLoaded", async function () {
     // =====================================================
 
     function renderizarNumeros() {
-        const total = apoios.reduce(
-            (soma, doacao) => soma + Number(doacao.valor || 0),
-            0
-        );
-
         if ($("statCriados")) {
-            $("statCriados").textContent = criados.length;
+            $("statCriados").textContent =
+                estatisticas.total_projetos;
         }
 
         if ($("statApoiados")) {
-            $("statApoiados").textContent = new Set(
-                apoios.map(doacao => doacao.id)
-            ).size;
+            $("statApoiados").textContent =
+                estatisticas.total_apoiados;
         }
 
         if ($("statTotal")) {
-            $("statTotal").textContent = moeda(total);
+            $("statTotal").textContent =
+                moeda(estatisticas.total_doado);
         }
 
+        // Não existe uma fonte de dados confirmada para pessoas impactadas.
+        // Evita exibir o número fictício que existia anteriormente.
         if ($("statPessoas")) {
-            $("statPessoas").textContent = 45;
+            $("statPessoas").textContent = "—";
         }
     }
 
@@ -322,12 +379,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                class="item">
 
                 <div class="item-foto"
-                     style="background-image:url('${esc(projeto.img || "")}')">
+                     style="background-image:url('${esc(projeto.img)}')">
                 </div>
 
                 <div class="item-meio">
                     <strong>${esc(projeto.titulo)}</strong>
-                    <small>${esc(projeto.org || "")}</small>
+                    <small>${esc(projeto.org)}</small>
 
                     <div class="mini-barra">
                         <div style="width:${percentual}%"></div>
@@ -347,21 +404,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     const linhaApoio = doacao => {
         const projeto = doacao.projeto;
 
-        const andamento =
-            Number(projeto.dias) > 0 &&
-            Number(projeto.pct) < 100;
-
+        // O status do projeto não é retornado pelo endpoint de doações.
+        // Por isso, não presume que o projeto esteja concluído.
         return `
             <a href="projeto.html?id=${encodeURIComponent(projeto.id)}"
                class="item">
 
                 <div class="item-foto"
-                     style="background-image:url('${esc(projeto.img || "")}')">
+                     style="background-image:url('${esc(projeto.img)}')">
                 </div>
 
                 <div class="item-meio">
                     <strong>${esc(projeto.titulo)}</strong>
-                    <small>Por ${esc(projeto.autor || "")}</small>
+                    <small>Projeto apoiado</small>
 
                     <div class="item-valores">
                         <span>${moeda(doacao.valor)} doados</span>
@@ -369,14 +424,16 @@ document.addEventListener("DOMContentLoaded", async function () {
                     </div>
                 </div>
 
-                <span class="tag-status ${andamento ? "" : "concluido"}">
-                    ${andamento ? "Em andamento" : "Concluído"}
-                </span>
+                <span class="tag-status">Doação confirmada</span>
 
                 <i class="fa-solid fa-chevron-right seta"></i>
             </a>
         `;
     };
+
+    // =====================================================
+    // RENDERIZAR LISTAS
+    // =====================================================
 
     function renderizarListas() {
         if ($("resumoCriados")) {
@@ -534,7 +591,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                 }
 
                 if (!resultado.usuario) {
-                    throw new Error("O servidor não retornou os dados atualizados.");
+                    throw new Error(
+                        "O servidor não retornou os dados atualizados."
+                    );
                 }
 
                 perfil.nome = resultado.usuario.nome || nome;
@@ -559,7 +618,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                     erro.hidden = false;
                 } else {
-                    aviso(erroSalvamento.message || "Erro ao salvar o perfil.");
+                    aviso(
+                        erroSalvamento.message ||
+                        "Erro ao salvar o perfil."
+                    );
                 }
             }
         });
@@ -623,7 +685,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                 }
 
                 if (!resultado.usuario) {
-                    throw new Error("O servidor não retornou os dados atualizados.");
+                    throw new Error(
+                        "O servidor não retornou os dados atualizados."
+                    );
                 }
 
                 perfil.nome = resultado.usuario.nome || perfil.nome;
