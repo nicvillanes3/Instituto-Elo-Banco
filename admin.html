@@ -1,0 +1,405 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Painel administrativo | Instituto Elo</title>
+
+    <link rel="stylesheet" href="nav.css">
+    <link rel="stylesheet" href="admin.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="auth.js"></script>
+    <script src="admin.js" defer></script>
+</head>
+
+<body>
+
+    <!-- NAVBAR ORIGINAL DO ELO -->
+    <header>
+        <nav class="navbar" id="navbar"></nav>
+    </header>
+
+    <div class="admin-layout">
+
+        <!-- MENU LATERAL -->
+        <aside class="admin-sidebar" id="sidebar">
+
+            <div class="barra-lateral">
+
+                <a href="#inicio" class="active">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    Visão geral
+                </a>
+
+                <a href="#campanhas">
+                    <i class="fa-solid fa-folder-open"></i>
+                    Campanhas
+                </a>
+
+                <a href="#financeiro">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                    Financeiro
+                </a>
+
+                <a href="#usuarios">
+                    <i class="fa-solid fa-users"></i>
+                    Usuários
+                </a>
+
+                <a href="#doacoes">
+                    <i class="fa-regular fa-heart"></i>
+                    Doações
+                </a>
+
+            </div>
+
+            <div class="card-destaque">
+                <i class="fa-regular fa-lightbulb" id="card-icon"></i>
+
+                <p id="card-text">
+                    Conectando ideias, transformando realidades.
+                </p>
+            </div>
+
+            <button class="logout-button" id="logoutButton" type="button">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Sair da conta
+            </button>
+
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="admin-main" id="inicio">
+
+            <!-- TÍTULO DA PÁGINA -->
+            <section class="page-heading">
+
+                <button class="mobile-menu" id="mobileMenu"
+                    type="button" aria-label="Abrir menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div>
+                    <h1>Painel administrativo</h1>
+
+                    <p>
+                        Gerencie e acompanhe as atividades do Instituto Elo.
+                    </p>
+                </div>
+
+                <div class="admin-status">
+                    <span></span>
+                    Área administrativa
+                </div>
+
+            </section>
+
+            <!-- BOAS-VINDAS -->
+            <section class="welcome-row">
+
+                <div>
+                    <h2>Bem-vinda ao painel do Elo!</h2>
+
+                    <p>
+                        Acompanhe campanhas, doações e os recursos
+                        destinados ao Instituto.
+                    </p>
+                </div>
+
+                <button class="refresh-button" id="refreshButton" type="button">
+                    <i class="fa-solid fa-rotate"></i>
+                    Atualizar dados
+                </button>
+
+            </section>
+
+            <!-- MENSAGENS -->
+            <div class="alert" id="feedback"
+                role="status" aria-live="polite" hidden>
+            </div>
+
+            <!-- INDICADORES -->
+            <section class="stats-grid">
+
+                <!-- TOTAL ELO -->
+                <article class="stat-card card-elo">
+
+                    <div class="stat-icon icon-yellow">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+
+                    <div>
+                        <p>Total destinado ao Elo</p>
+
+                        <strong id="totalElo">R$ 0,00</strong>
+
+                        <small>5% das doações confirmadas</small>
+                    </div>
+
+                </article>
+
+                <!-- TOTAL ARRECADADO -->
+                <article class="stat-card">
+
+                    <div class="stat-icon icon-blue">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+
+                    <div>
+                        <p>Total arrecadado</p>
+
+                        <strong id="totalArrecadado">R$ 0,00</strong>
+
+                        <small>Doações confirmadas</small>
+                    </div>
+
+                </article>
+
+                <!-- TOTAL CAMPANHAS -->
+                <article class="stat-card">
+
+                    <div class="stat-icon icon-green">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                    </div>
+
+                    <div>
+                        <p>Destinado às campanhas</p>
+
+                        <strong id="totalCampanhas">R$ 0,00</strong>
+
+                        <small>95% das doações confirmadas</small>
+                    </div>
+
+                </article>
+
+                <!-- QUANTIDADE DE PROJETOS -->
+                <article class="stat-card">
+
+                    <div class="stat-icon icon-purple">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+
+                    <div>
+                        <p>Campanhas cadastradas</p>
+
+                        <strong id="totalProjetos">0</strong>
+
+                        <small>Projetos no banco de dados</small>
+                    </div>
+
+                </article>
+
+                <!-- QUANTIDADE DE USUÁRIOS -->
+                <article class="stat-card">
+
+                    <div class="stat-icon icon-orange">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+
+                    <div>
+                        <p>Usuários ativos</p>
+
+                        <strong id="totalUsuarios">0</strong>
+
+                        <small>Contas ativas</small>
+                    </div>
+
+                </article>
+
+            </section>
+
+            <!-- FINANCEIRO E CAMPANHAS -->
+            <section class="dashboard-grid">
+
+                <!-- DISTRIBUIÇÃO FINANCEIRA -->
+                <article class="content-card finance-card" id="financeiro">
+
+                    <div class="section-heading">
+
+                        <div>
+                            <h2>Divisão dos recursos</h2>
+
+                            <p>
+                                Distribuição das doações confirmadas
+                            </p>
+                        </div>
+
+                        <span class="tag">Acumulado</span>
+
+                    </div>
+
+                    <div class="distribution">
+
+                        <div class="donut" id="donutChart">
+
+                            <div class="donut-center">
+                                <strong>5%</strong>
+                                <span>para o Elo</span>
+                            </div>
+
+                        </div>
+
+                        <div class="legend">
+
+                            <div class="legend-item">
+
+                                <span class="legend-dot elo-dot"></span>
+
+                                <div>
+                                    <p>Instituto Elo</p>
+                                    <strong id="legendElo">R$ 0,00</strong>
+                                </div>
+
+                            </div>
+
+                            <div class="legend-item">
+
+                                <span class="legend-dot campaign-dot"></span>
+
+                                <div>
+                                    <p>Campanhas</p>
+                                    <strong id="legendCampanhas">R$ 0,00</strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="finance-note">
+                        A divisão considera 5% para o Instituto Elo
+                        e 95% para as campanhas.
+                    </div>
+
+                </article>
+
+                <!-- TABELA DE CAMPANHAS -->
+                <article class="content-card campaigns-card" id="campanhas">
+
+                    <div class="section-heading">
+
+                        <div>
+                            <h2>Campanhas</h2>
+
+                            <p>
+                                Acompanhe os valores arrecadados por projeto.
+                            </p>
+                        </div>
+
+                        <span class="tag" id="campaignCount">
+                            0 campanhas
+                        </span>
+
+                    </div>
+
+                    <div class="table-wrap">
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>Projeto</th>
+                                    <th>Arrecadado</th>
+                                    <th>Parte do Elo</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="campaignTable">
+
+                                <tr>
+                                    <td colspan="3" class="empty-cell">
+                                        Carregando campanhas...
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </article>
+
+            </section>
+
+            <!-- RESUMO DO SISTEMA -->
+            <section class="content-card summary-card" id="usuarios">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Resumo do sistema</h2>
+
+                        <p>
+                            Informações gerais da plataforma.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="summary-grid">
+
+                    <!-- USUÁRIOS -->
+                    <div class="summary-item">
+
+                        <span class="summary-icon icon-blue">
+                            <i class="fa-solid fa-users"></i>
+                        </span>
+
+                        <div>
+                            <strong id="summaryUsers">0</strong>
+                            <p>Usuários ativos</p>
+                        </div>
+
+                    </div>
+
+                    <!-- PROJETOS -->
+                    <div class="summary-item">
+
+                        <span class="summary-icon icon-purple">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </span>
+
+                        <div>
+                            <strong id="summaryProjects">0</strong>
+                            <p>Campanhas cadastradas</p>
+                        </div>
+
+                    </div>
+
+                    <!-- DOAÇÕES -->
+                    <div class="summary-item" id="doacoes">
+
+                        <span class="summary-icon icon-yellow">
+                            <i class="fa-solid fa-hand-holding-heart"></i>
+                        </span>
+
+                        <div>
+                            <strong id="summaryDonations">R$ 0,00</strong>
+                            <p>Doações confirmadas</p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- RODAPÉ -->
+            <footer class="admin-footer">
+                Instituto Elo · Conectando ideias, transformando realidades.
+            </footer>
+
+        </main>
+
+    </div>
+
+</body>
+</html>
