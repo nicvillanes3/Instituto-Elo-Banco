@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -10,40 +11,38 @@ function responder($status, $dados)
     exit;
 }
 
-// Aceita somente requisições POST
+// Somente POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     responder(405, [
         'sucesso' => false,
-        'mensagem' => 'Método de requisição não permitido.'
+        'mensagem' => 'Método não permitido.'
     ]);
 }
 
-// Verifica se o usuário está autenticado pela sessão PHP
-if (
-    !isset($_SESSION['usuario_id']) ||
-    !filter_var($_SESSION['usuario_id'], FILTER_VALIDATE_INT) ||
-    (int) $_SESSION['usuario_id'] <= 0
-) {
+// Verifica sessão
+$usuarioId = filter_var(
+    $_SESSION['usuario_id'] ?? null,
+    FILTER_VALIDATE_INT
+);
+
+if (!$usuarioId || $usuarioId <= 0) {
     responder(401, [
         'sucesso' => false,
         'mensagem' => 'Faça login para realizar uma doação.'
     ]);
 }
 
-$usuarioId = (int) $_SESSION['usuario_id'];
-
-// Lê os dados enviados pelo projeto.js
-$conteudo = file_get_contents('php://input');
-$dados = json_decode($conteudo, true);
+// Recebe JSON
+$dados = json_decode(file_get_contents('php://input'), true);
 
 if (!is_array($dados)) {
     responder(400, [
         'sucesso' => false,
-        'mensagem' => 'Os dados enviados são inválidos.'
+        'mensagem' => 'Dados enviados inválidos.'
     ]);
 }
 
-// Valida o ID do projeto
+// Valida projeto
 $projetoId = filter_var(
     $dados['projeto_id'] ?? null,
     FILTER_VALIDATE_INT
@@ -56,7 +55,7 @@ if (!$projetoId || $projetoId <= 0) {
     ]);
 }
 
-// Valida o valor da doação
+// Valida valor
 $valorRecebido = $dados['valor'] ?? null;
 
 if (
@@ -66,17 +65,16 @@ if (
 ) {
     responder(400, [
         'sucesso' => false,
-        'mensagem' => 'Informe um valor válido.'
+        'mensagem' => 'Valor inválido.'
     ]);
 }
 
 $valorTexto = trim((string) $valorRecebido);
 
-// Aceita números com ponto decimal, como 50.00
 if (!preg_match('/^\d+(\.\d{1,2})?$/', $valorTexto)) {
     responder(400, [
         'sucesso' => false,
-        'mensagem' => 'O formato do valor é inválido.'
+        'mensagem' => 'Formato de valor inválido.'
     ]);
 }
 
@@ -85,11 +83,11 @@ $valor = (float) $valorTexto;
 if ($valor <= 0 || $valor > 1000000) {
     responder(400, [
         'sucesso' => false,
-        'mensagem' => 'O valor deve ser maior que zero e não ultrapassar R$ 1.000.000,00.'
+        'mensagem' => 'Valor fora do limite permitido.'
     ]);
 }
 
-// Valida o método de pagamento
+// Valida método
 $metodo = $dados['metodo_pagamento'] ?? '';
 
 $metodosPermitidos = ['pix', 'cartao', 'boleto'];
@@ -97,16 +95,36 @@ $metodosPermitidos = ['pix', 'cartao', 'boleto'];
 if (!in_array($metodo, $metodosPermitidos, true)) {
     responder(400, [
         'sucesso' => false,
-        'mensagem' => 'Selecione uma forma de pagamento válida.'
+        'mensagem' => 'Método de pagamento inválido.'
     ]);
 }
 
 try {
     require_once __DIR__ . '/conexao.php';
 
-    // Confirma que o projeto existe
+    // Confirma usuário ativo
+    $consultaUsuario = $pdo->prepare(
+        "SELECT id FROM usuarios
+         WHERE id = :id AND ativo = 1
+         LIMIT 1"
+    );
+
+    $consultaUsuario->execute([
+        ':id' => $usuarioId
+    ]);
+
+    if (!$consultaUsuario->fetch()) {
+        responder(401, [
+            'sucesso' => false,
+            'mensagem' => 'Usuário não encontrado ou inativo.'
+        ]);
+    }
+
+    // Confirma projeto
     $consultaProjeto = $pdo->prepare(
-        'SELECT id FROM projetos WHERE id = :id LIMIT 1'
+        "SELECT id FROM projetos
+         WHERE id = :id
+         LIMIT 1"
     );
 
     $consultaProjeto->execute([
@@ -116,15 +134,17 @@ try {
     if (!$consultaProjeto->fetch()) {
         responder(404, [
             'sucesso' => false,
-            'mensagem' => 'O projeto informado não foi encontrado.'
+            'mensagem' => 'Projeto não encontrado.'
         ]);
     }
 
-    // Registra a doação como pendente
+    // Registra doação como pendente
+    $pdo->beginTransaction();
+
     $sql = "INSERT INTO doacoes
-                (usuario_id, projeto_id, valor, metodo_pagamento, status, anonimato)
-            VALUES
-                (:usuario_id, :projeto_id, :valor, :metodo_pagamento, 'pendente', 0)";
+        (usuario_id, projeto_id, valor, metodo_pagamento, status, anonimato)
+        VALUES
+        (:usuario_id, :projeto_id, :valor, :metodo, 'pendente', 0)";
 
     $inserir = $pdo->prepare($sql);
 
@@ -132,22 +152,29 @@ try {
         ':usuario_id' => $usuarioId,
         ':projeto_id' => $projetoId,
         ':valor' => number_format($valor, 2, '.', ''),
-        ':metodo_pagamento' => $metodo
+        ':metodo' => $metodo
     ]);
 
     $doacaoId = (int) $pdo->lastInsertId();
 
+    $pdo->commit();
+
     responder(201, [
         'sucesso' => true,
-        'mensagem' => 'Doação registrada. Agora você pode continuar para o pagamento.',
+        'mensagem' => 'Doação registrada com sucesso.',
         'doacao_id' => $doacaoId
     ]);
 
-} catch (PDOException $erro) {
+} catch (Throwable $erro) {
+
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
     error_log('Erro ao registrar doação: ' . $erro->getMessage());
 
     responder(500, [
         'sucesso' => false,
-        'mensagem' => 'Não foi possível registrar a doação. Confira a configuração do banco de dados.'
+        'mensagem' => 'Erro ao registrar a doação.'
     ]);
 }
