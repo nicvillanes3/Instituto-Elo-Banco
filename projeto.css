@@ -1058,3 +1058,20 @@ body {
 .card-projeto .progresso-box {
     width: 100%;
 }
+
+.barra {
+    width: 100%;
+    height: 7px;
+    background-color: #e5e5e5;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.barra #barra {
+    display: block;
+    height: 100%;
+    width: 0;
+    background-color: #075BE8;
+    border-radius: 20px;
+    transition: width 0.4s ease;
+}
