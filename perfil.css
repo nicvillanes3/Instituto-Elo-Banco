@@ -744,3 +744,20 @@ body {
     width: 100% !important;
     margin: 0 !important;
 }
+
+.foto {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    min-width: 88px;
+    flex-shrink: 0;
+}
+
+.foto img {
+    display: block;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #dceaff;
+}

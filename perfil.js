@@ -21,8 +21,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!data) return "";
 
         const valor = String(data);
-
-        // Formato de data recebido do MySQL: YYYY-MM-DD ou YYYY-MM-DD HH:MM:SS
         const partes = valor.substring(0, 10).split("-");
 
         return partes.length === 3
@@ -44,6 +42,41 @@ document.addEventListener("DOMContentLoaded", async function () {
         setTimeout(() => {
             elemento.classList.remove("visivel");
         }, 2500);
+    }
+
+    // =====================================================
+    // FOTO PADRÃO COM AS INICIAIS DO USUÁRIO
+    // =====================================================
+
+    function fotoPadrao(nome) {
+        const iniciais = String(nome || "Usuário")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(palavra => palavra[0])
+            .join("")
+            .toUpperCase();
+
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="200" height="200"
+                 viewBox="0 0 200 200">
+
+                <rect width="200" height="200"
+                      rx="100" fill="#dceaff"/>
+
+                <text x="100" y="115"
+                      text-anchor="middle"
+                      font-family="Arial, sans-serif"
+                      font-size="65"
+                      font-weight="bold"
+                      fill="#1265df">${esc(iniciais)}</text>
+            </svg>
+        `;
+
+        return "data:image/svg+xml;charset=UTF-8," +
+            encodeURIComponent(svg);
     }
 
     let perfil = {
@@ -84,6 +117,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 email: perfil.email,
                 tipo: perfil.tipo
             }));
+
         } catch (erro) {
             console.error("Erro ao sincronizar a sessão:", erro);
         }
@@ -275,11 +309,31 @@ document.addEventListener("DOMContentLoaded", async function () {
     } catch (erro) {
         console.error("Erro ao carregar atividades:", erro);
 
-        // Mantém o perfil disponível, mas informa o problema.
         aviso(
             erro.message ||
             "Não foi possível carregar os projetos e as doações."
         );
+    }
+
+    // =====================================================
+    // RENDERIZAR FOTO DO PERFIL
+    // =====================================================
+
+    function renderizarFoto() {
+        const imagem = $("fotoPerfil");
+
+        if (!imagem) return;
+
+        const imagemPadrao = fotoPadrao(perfil.nome);
+
+        // Se a foto cadastrada não carregar, usa as iniciais.
+        imagem.onerror = function () {
+            this.onerror = null;
+            this.src = imagemPadrao;
+        };
+
+        // Se não houver foto cadastrada, usa as iniciais.
+        imagem.src = perfil.foto_perfil || imagemPadrao;
     }
 
     // =====================================================
@@ -300,9 +354,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 "Adicione uma biografia para contar um pouco sobre você.";
         }
 
-        if ($("fotoPerfil")) {
-            $("fotoPerfil").src = perfil.foto_perfil || "mariane.jpg";
-        }
+        renderizarFoto();
 
         const tipos = {
             apoiador: "Apoiador(a)",
@@ -357,8 +409,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 moeda(estatisticas.total_doado);
         }
 
-        // Não existe uma fonte de dados confirmada para pessoas impactadas.
-        // Evita exibir o número fictício que existia anteriormente.
+        // Não existe uma fonte confirmada para pessoas impactadas.
         if ($("statPessoas")) {
             $("statPessoas").textContent = "—";
         }
@@ -404,8 +455,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const linhaApoio = doacao => {
         const projeto = doacao.projeto;
 
-        // O status do projeto não é retornado pelo endpoint de doações.
-        // Por isso, não presume que o projeto esteja concluído.
         return `
             <a href="projeto.html?id=${encodeURIComponent(projeto.id)}"
                class="item">
@@ -495,10 +544,21 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     function preencherFormulario() {
-        if ($("campoNome")) $("campoNome").value = perfil.nome;
-        if ($("campoEmail")) $("campoEmail").value = perfil.email;
-        if ($("campoBio")) $("campoBio").value = perfil.bio;
-        if ($("erroPerfil")) $("erroPerfil").hidden = true;
+        if ($("campoNome")) {
+            $("campoNome").value = perfil.nome;
+        }
+
+        if ($("campoEmail")) {
+            $("campoEmail").value = perfil.email;
+        }
+
+        if ($("campoBio")) {
+            $("campoBio").value = perfil.bio;
+        }
+
+        if ($("erroPerfil")) {
+            $("erroPerfil").hidden = true;
+        }
     }
 
     if ($("btnEditar")) {
@@ -512,7 +572,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                 });
             }
 
-            if ($("campoNome")) $("campoNome").focus();
+            if ($("campoNome")) {
+                $("campoNome").focus();
+            }
         });
     }
 
@@ -704,6 +766,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             } catch (erroFoto) {
                 console.error("Erro ao atualizar foto:", erroFoto);
                 aviso(erroFoto.message || "Erro ao atualizar a foto.");
+
             } finally {
                 evento.target.value = "";
             }
@@ -819,6 +882,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 $("copiarConvite").addEventListener("click", async () => {
                     try {
                         await navigator.clipboard.writeText(url);
+
                     } catch (erroCopia) {
                         if ($("linkConvite")) {
                             $("linkConvite").select();
@@ -844,6 +908,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                             text: texto,
                             url
                         });
+
                     } catch (erroCompartilhar) {
                         // O usuário pode cancelar o compartilhamento.
                     }
