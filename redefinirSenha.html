@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir senha - Instituto Elo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #F8FAFF;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
+            color: #172033;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 460px;
+            background: white;
+            padding: 42px 38px;
+            border-radius: 18px;
+            box-shadow: 0 8px 35px rgba(7, 91, 232, 0.09);
+            text-align: center;
+        }
+
+        .icone {
+            width: 65px;
+            height: 65px;
+            margin: 0 auto 22px;
+            border-radius: 18px;
+            background: #E8F1FF;
+            color: #075BE8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        h1 {
+            font-size: 25px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .descricao {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #68758A;
+            margin-bottom: 28px;
+        }
+
+        .campo {
+            text-align: left;
+            margin-bottom: 19px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            height: 49px;
+            border: 1px solid #D8E1EF;
+            border-radius: 9px;
+            padding: 0 14px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: .2s;
+        }
+
+        input:focus {
+            border-color: #075BE8;
+            box-shadow: 0 0 0 3px rgba(7, 91, 232, .09);
+        }
+
+        button {
+            width: 100%;
+            height: 50px;
+            border: none;
+            border-radius: 9px;
+            background: #075BE8;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .2s;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            background: #064BC0;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        #mensagem {
+            display: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        #mensagem.sucesso {
+            display: block;
+            background: #DDF7E8;
+            color: #147A43;
+        }
+
+        #mensagem.erro {
+            display: block;
+            background: #FDE8E8;
+            color: #B42318;
+        }
+
+        .voltar {
+            display: inline-block;
+            margin-top: 23px;
+            color: #075BE8;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .voltar:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 35px 23px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+
+    <script src="redefinirSenha.js" defer></script>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <div class="icone">🔒</div>
+
+        <h1>Crie uma nova senha</h1>
+
+        <p class="descricao">
+            Escolha uma nova senha para sua conta do Instituto Elo.
+            Ela será atualizada assim que você confirmar.
+        </p>
+
+        <div id="mensagem" role="alert"></div>
+
+        <form id="formRedefinirSenha">
+
+            <div class="campo">
+                <label for="novaSenha">Nova senha</label>
+                <input
+                    type="password"
+                    id="novaSenha"
+                    placeholder="Digite sua nova senha"
+                    minlength="8"
+                    autocomplete="new-password"
+                    required>
+            </div>
+
+            <div class="campo">
+                <label for="confirmarSenha">Confirmar nova senha</label>
+                <input
+                    type="password"
+                    id="confirmarSenha"
+                    placeholder="Digite novamente sua senha"
+                    minlength="8"
+                    autocomplete="new-password"
+                    required>
+            </div>
+
+            <button type="submit" id="botaoRedefinir">
+                Redefinir minha senha
+            </button>
+
+        </form>
+
+        <a href="login.html" class="voltar">
+            Voltar para o login
+        </a>
+
+    </main>
+
+</body>
+</html>
