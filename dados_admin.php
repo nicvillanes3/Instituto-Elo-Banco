@@ -50,9 +50,11 @@ try {
     $financeiro = $pdo->query($sqlFinanceiro)->fetch();
 
     // Total de campanhas
-    $totalProjetos = $pdo->query(
-        "SELECT COUNT(*) FROM projetos"
-    )->fetchColumn();
+  $totalProjetos = $pdo->query(
+    "SELECT COUNT(*)
+     FROM projetos
+     WHERE COALESCE(status, '') <> 'excluido'"
+)->fetchColumn();
 
     // Total de usuários ativos
     $totalUsuarios = $pdo->query(
@@ -61,19 +63,20 @@ try {
 
     // Campanhas e seus valores
     $sqlProjetos = "
-        SELECT
-            p.id,
-            p.titulo,
-            COALESCE(SUM(d.valor), 0) AS total_arrecadado,
-            COALESCE(SUM(d.valor * 0.05), 0) AS total_elo,
-            COALESCE(SUM(d.valor * 0.95), 0) AS total_campanha
-        FROM projetos p
-        LEFT JOIN doacoes d
-            ON d.projeto_id = p.id
-            AND d.status = 'confirmada'
-        GROUP BY p.id, p.titulo
-        ORDER BY p.id DESC
-    ";
+    SELECT
+        p.id,
+        p.titulo,
+        COALESCE(SUM(d.valor), 0) AS total_arrecadado,
+        COALESCE(SUM(d.valor * 0.05), 0) AS total_elo,
+        COALESCE(SUM(d.valor * 0.95), 0) AS total_campanha
+    FROM projetos p
+    LEFT JOIN doacoes d
+        ON d.projeto_id = p.id
+        AND d.status = 'confirmada'
+   WHERE COALESCE(p.status, '') <> 'excluido'
+    GROUP BY p.id, p.titulo
+    ORDER BY p.id DESC
+";
 
     $projetos = $pdo->query($sqlProjetos)->fetchAll();
 

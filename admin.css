@@ -860,11 +860,24 @@ tbody td:last-child {
     color: #075BE8 !important;
 }
 
-/* Footer do painel administrativo */
-.admin-main > .footer {
-    width: calc(100% + 60px);
-    margin-left: -30px;
-    margin-right: -30px;
-    box-sizing: border-box;
-    flex-shrink: 0;
+.btn-excluir-campanha {
+    background: #fff0f0;
+    color: #d93030;
+    border: 1px solid #ffd0d0;
+    padding: 9px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-excluir-campanha:hover {
+    background: #d93030;
+    color: white;
+}
+
+.btn-excluir-campanha:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

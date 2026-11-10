@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 require_once 'conexao.php';
@@ -54,6 +55,7 @@ if (!in_array($categoria, [
     exit('Categoria inválida.');
 }
 
+// Upload da imagem
 $imagem = null;
 
 if (
@@ -107,6 +109,7 @@ $dataFim = date('Y-m-d', strtotime("+$dias days"));
 try {
     $pdo->beginTransaction();
 
+    // Cadastra a campanha como publicada
     $sql = "INSERT INTO projetos
         (
             usuario_id,
@@ -133,7 +136,7 @@ try {
             0,
             :data_inicio,
             :data_fim,
-            'ativa',
+            'publicado',
             :local,
             :instituicao
         )";
@@ -157,8 +160,7 @@ try {
 
     $pdo->commit();
 
-    // Cria uma notificação para o criador da campanha.
-    // Se a notificação falhar, a campanha permanece cadastrada.
+    // Cria uma notificação para o criador
     try {
         $sqlNotificacao = "INSERT INTO notificacoes
             (usuario_id, titulo, mensagem, tipo, lida, link)
@@ -173,8 +175,9 @@ try {
             ':mensagem' => 'Sua campanha "' . $titulo . '" foi cadastrada com sucesso.',
             ':link' => 'projeto.html?id=' . $projetoId
         ]);
+
     } catch (Throwable $erroNotificacao) {
-        // Não impede a publicação caso a notificação falhe.
+        // A campanha permanece cadastrada se a notificação falhar.
         error_log('Erro ao criar notificação: ' . $erroNotificacao->getMessage());
     }
 
@@ -182,10 +185,14 @@ try {
     exit;
 
 } catch (Throwable $e) {
+
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
+    error_log('Erro ao cadastrar campanha: ' . $e->getMessage());
+
     http_response_code(500);
+
     exit('Não foi possível cadastrar a campanha. Confira a estrutura da tabela projetos e tente novamente.');
 }

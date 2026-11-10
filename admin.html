@@ -16,7 +16,7 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth.js"></script>
-    <script src="admin.js" defer></script>
+   <script src="admin.js?v=2" defer></script>
     <script src="navegacaoAdmin.js" defer></script>
 </head>
 
@@ -230,22 +230,21 @@
                         <table>
 
                             <thead>
-                                <tr>
-                                    <th>Projeto</th>
-                                    <th>Arrecadado</th>
-                                    <th>Parte do Elo</th>
-                                </tr>
-                            </thead>
+    <tr>
+        <th>Projeto</th>
+        <th>Arrecadado</th>
+        <th>Parte do Elo</th>
+        <th>Ações</th>
+    </tr>
+</thead>
 
-                            <tbody id="campaignTable">
-
-                                <tr>
-                                    <td colspan="3" class="empty-cell">
-                                        Carregando campanhas...
-                                    </td>
-                                </tr>
-
-                            </tbody>
+<tbody id="campaignTable">
+    <tr>
+        <td colspan="4" class="empty-cell">
+            Carregando campanhas...
+        </td>
+    </tr>
+</tbody>
 
                         </table>
 
