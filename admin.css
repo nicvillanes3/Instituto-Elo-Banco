@@ -881,3 +881,22 @@ tbody td:last-child {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* ===== VOLTAR PARA PERFIL ===== */
+
+.barra-lateral a.voltar-perfil {
+    margin-top: 12px;
+    border-top: 1px solid #E9EDF3;
+    border-radius: 8px;
+    color: #075BE8;
+    font-weight: 600;
+}
+
+.barra-lateral a.voltar-perfil i {
+    color: #075BE8;
+}
+
+.barra-lateral a.voltar-perfil:hover {
+    background-color: #E8F1FF;
+    color: #064BC0;
+}

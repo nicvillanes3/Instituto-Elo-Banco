@@ -120,9 +120,10 @@ try {
         ]);
     }
 
-    // Confirma projeto
+    // Busca informações da campanha
     $consultaProjeto = $pdo->prepare(
-        "SELECT id FROM projetos
+        "SELECT id, titulo, usuario_id
+         FROM projetos
          WHERE id = :id
          LIMIT 1"
     );
@@ -131,14 +132,16 @@ try {
         ':id' => $projetoId
     ]);
 
-    if (!$consultaProjeto->fetch()) {
+    $projeto = $consultaProjeto->fetch(PDO::FETCH_ASSOC);
+
+    if (!$projeto) {
         responder(404, [
             'sucesso' => false,
             'mensagem' => 'Projeto não encontrado.'
         ]);
     }
 
-    // Registra doação como pendente
+    // Registra doação e notificação
     $pdo->beginTransaction();
 
     $sql = "INSERT INTO doacoes
@@ -157,11 +160,34 @@ try {
 
     $doacaoId = (int) $pdo->lastInsertId();
 
+    // Link individual da doação
+    $linkDoacao = 'projeto.html?id=' . $projetoId . '&doacao=' . $doacaoId;
+
+    // Formata valor
+    $valorFormatado = number_format($valor, 2, ',', '.');
+
+    // Notificação para o doador
+    $sqlNotificacao = "INSERT INTO notificacoes
+        (usuario_id, titulo, mensagem, tipo, lida, link)
+        VALUES
+        (:usuario_id, :titulo, :mensagem, 'doacao', 0, :link)";
+
+    $notificar = $pdo->prepare($sqlNotificacao);
+
+    $notificar->execute([
+        ':usuario_id' => $usuarioId,
+        ':titulo' => 'Doação registrada!',
+        ':mensagem' => 'Sua doação de R$ ' . $valorFormatado .
+            ' para o projeto "' . $projeto['titulo'] .
+            '" foi registrada e está aguardando confirmação.',
+        ':link' => $linkDoacao
+    ]);
+
     $pdo->commit();
 
     responder(201, [
         'sucesso' => true,
-        'mensagem' => 'Doação registrada com sucesso.',
+        'mensagem' => 'Doação registrada com sucesso!',
         'doacao_id' => $doacaoId
     ]);
 

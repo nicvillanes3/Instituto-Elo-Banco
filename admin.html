@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -11,12 +10,11 @@
     <link rel="stylesheet" href="nav.css">
     <link rel="stylesheet" href="footer.css">
     <link rel="stylesheet" href="admin.css">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth.js"></script>
-   <script src="admin.js?v=2" defer></script>
+    <script src="admin.js?v=2" defer></script>
     <script src="navegacaoAdmin.js" defer></script>
 </head>
 
@@ -58,6 +56,12 @@
                     Doações
                 </a>
 
+                <!-- VOLTAR PARA PERFIL -->
+                <a href="perfil.html" class="voltar-perfil">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Voltar para perfil
+                </a>
+
             </div>
 
             <div class="card-destaque">
@@ -81,8 +85,7 @@
             <!-- CABEÇALHO FIXO -->
             <section class="page-heading">
 
-                <button class="mobile-menu" id="mobileMenu"
-                    type="button" aria-label="Abrir menu">
+                <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menu">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
@@ -123,8 +126,7 @@
                 </section>
 
                 <!-- MENSAGENS -->
-                <div class="alert" id="feedback"
-                    role="status" aria-live="polite" hidden>
+                <div class="alert" id="feedback" role="status" aria-live="polite" hidden>
                 </div>
 
                 <!-- INDICADORES -->
@@ -230,21 +232,21 @@
                         <table>
 
                             <thead>
-    <tr>
-        <th>Projeto</th>
-        <th>Arrecadado</th>
-        <th>Parte do Elo</th>
-        <th>Ações</th>
-    </tr>
-</thead>
+                                <tr>
+                                    <th>Projeto</th>
+                                    <th>Arrecadado</th>
+                                    <th>Parte do Elo</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
 
-<tbody id="campaignTable">
-    <tr>
-        <td colspan="4" class="empty-cell">
-            Carregando campanhas...
-        </td>
-    </tr>
-</tbody>
+                            <tbody id="campaignTable">
+                                <tr>
+                                    <td colspan="4" class="empty-cell">
+                                        Carregando campanhas...
+                                    </td>
+                                </tr>
+                            </tbody>
 
                         </table>
 
@@ -411,12 +413,12 @@
             </section>
 
             <!-- RODAPÉ -->
-           
+
 
         </main>
 
     </div>
-   <div class="footer">
+    <div class="footer">
 
         <div class="footer-content">
             <div class="logo">
@@ -426,7 +428,8 @@
             <p class="slogan">Conectando ideias, transformando realidades.</p>
 
             <div class="social-icons">
-                <a href="https://www.instagram.com/instituto_.elo/?utm_source=ig_web_button_share_sheet" aria-label="Instagram">
+                <a href="https://www.instagram.com/instituto_.elo/?utm_source=ig_web_button_share_sheet"
+                    aria-label="Instagram">
                     <i class="fa-brands fa-instagram"></i>
                 </a>
 
@@ -434,7 +437,8 @@
                     <i class="fa-brands fa-facebook-f"></i>
                 </a>
 
-                <a href="https://www.linkedin.com/company/instituto-elo-brasil/home/?viewAsMember=true" aria-label="LinkedIn">
+                <a href="https://www.linkedin.com/company/instituto-elo-brasil/home/?viewAsMember=true"
+                    aria-label="LinkedIn">
                     <i class="fa-brands fa-linkedin-in"></i>
                 </a>
             </div>
@@ -464,4 +468,5 @@
     </div>
 
 </body>
+
 </html>

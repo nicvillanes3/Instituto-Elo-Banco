@@ -109,7 +109,7 @@ $dataFim = date('Y-m-d', strtotime("+$dias days"));
 try {
     $pdo->beginTransaction();
 
-    // Cadastra a campanha como publicada
+    // Cadastra a campanha
     $sql = "INSERT INTO projetos
         (
             usuario_id,
@@ -158,28 +158,23 @@ try {
 
     $projetoId = (int) $pdo->lastInsertId();
 
+    // Cria notificação para quem criou
+    $sqlNotificacao = "INSERT INTO notificacoes
+        (usuario_id, titulo, mensagem, tipo, lida, link)
+        VALUES
+        (:usuario_id, :titulo, :mensagem, 'projeto', 0, :link)";
+
+    $stmtNotificacao = $pdo->prepare($sqlNotificacao);
+
+    $stmtNotificacao->execute([
+        ':usuario_id' => $usuario_id,
+        ':titulo' => 'Campanha publicada!',
+        ':mensagem' => 'Sua campanha "' . $titulo . '" foi cadastrada com sucesso. Agora ela já pode receber apoiadores!',
+        ':link' => 'projeto.html?id=' . $projetoId
+    ]);
+
+    // Confirma campanha e notificação juntas
     $pdo->commit();
-
-    // Cria uma notificação para o criador
-    try {
-        $sqlNotificacao = "INSERT INTO notificacoes
-            (usuario_id, titulo, mensagem, tipo, lida, link)
-            VALUES
-            (:usuario_id, :titulo, :mensagem, 'projeto', 0, :link)";
-
-        $stmtNotificacao = $pdo->prepare($sqlNotificacao);
-
-        $stmtNotificacao->execute([
-            ':usuario_id' => $usuario_id,
-            ':titulo' => 'Campanha publicada!',
-            ':mensagem' => 'Sua campanha "' . $titulo . '" foi cadastrada com sucesso.',
-            ':link' => 'projeto.html?id=' . $projetoId
-        ]);
-
-    } catch (Throwable $erroNotificacao) {
-        // A campanha permanece cadastrada se a notificação falhar.
-        error_log('Erro ao criar notificação: ' . $erroNotificacao->getMessage());
-    }
 
     header('Location: projeto.html?id=' . $projetoId . '&criado=sucesso');
     exit;
@@ -194,5 +189,5 @@ try {
 
     http_response_code(500);
 
-    exit('Não foi possível cadastrar a campanha. Confira a estrutura da tabela projetos e tente novamente.');
+    exit('Não foi possível cadastrar a campanha. Confira a estrutura das tabelas e tente novamente.');
 }
