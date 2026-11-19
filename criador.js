@@ -1,5 +1,6 @@
-
 document.addEventListener("DOMContentLoaded", function () {
+    "use strict";
+
     // ==========================================
     // CONFIGURAÇÕES
     // ==========================================
@@ -231,7 +232,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if ($("#graficoFalta")) {
-            $("#graficoFalta").textContent = "Nenhuma campanha selecionada";
+            $("#graficoFalta").textContent =
+                "Nenhuma campanha selecionada";
         }
 
         if ($("#graficoBarra")) {
@@ -243,68 +245,148 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // ==========================================
+    // GRÁFICO CIRCULAR (DONUT)
+    // ==========================================
+
     function desenharGrafico(p) {
         const svg = $("#graficoSvg");
         if (!svg) return;
 
         const arrecadado = Number(p.arrecadado) || 0;
         const meta = Number(p.meta) || 0;
+
         const progresso = meta > 0
             ? Math.min(100, arrecadado / meta * 100)
             : 0;
 
-        const largura = 560;
-        const x = 40;
-        const y1 = 66;
-        const y2 = 142;
-        const altura = 24;
-        const larguraBarra = largura * progresso / 100;
+        const falta = Math.max(0, meta - arrecadado);
+
+        const raio = 72;
+        const circunferencia = 2 * Math.PI * raio;
+
+        const preenchido = circunferencia * (progresso / 100);
+        const restante = circunferencia - preenchido;
+
+        svg.setAttribute("viewBox", "0 0 440 230");
+        svg.setAttribute("role", "img");
 
         svg.setAttribute(
             "aria-label",
-            `Desempenho de ${p.titulo}: ${dinheiro(arrecadado)} arrecadados de ${dinheiro(meta)}`
+            `Gráfico circular: ${dinheiro(arrecadado)} arrecadados, ${Math.round(progresso)}% da meta de ${dinheiro(meta)}`
         );
 
         svg.innerHTML = `
             <title>${escapar(p.titulo)}</title>
 
-            <text x="${x}" y="28" fill="#172033"
-                font-size="15" font-weight="600">
-                Arrecadação atual
+            <!-- Fundo do círculo -->
+            <circle
+                cx="115"
+                cy="115"
+                r="${raio}"
+                fill="none"
+                stroke="#E8F1FF"
+                stroke-width="20"
+            />
+
+            <!-- Parte arrecadada -->
+            <circle
+                cx="115"
+                cy="115"
+                r="${raio}"
+                fill="none"
+                stroke="#075BE8"
+                stroke-width="20"
+                stroke-linecap="round"
+                stroke-dasharray="${preenchido} ${restante}"
+                transform="rotate(-90 115 115)"
+                style="transition: stroke-dasharray 0.6s ease"
+            />
+
+            <!-- Porcentagem no centro -->
+            <text
+                x="115"
+                y="108"
+                text-anchor="middle"
+                fill="#172033"
+                font-size="30"
+                font-weight="700"
+            >
+                ${Math.round(progresso)}%
             </text>
 
-            <text x="${x + largura}" y="28"
-                text-anchor="end" fill="#075BE8"
-                font-size="15" font-weight="600">
+            <text
+                x="115"
+                y="132"
+                text-anchor="middle"
+                fill="#68758A"
+                font-size="12"
+            >
+                atingido
+            </text>
+
+            <!-- Legenda arrecadado -->
+            <circle
+                cx="235"
+                cy="65"
+                r="6"
+                fill="#075BE8"
+            />
+
+            <text
+                x="250"
+                y="69"
+                fill="#68758A"
+                font-size="13"
+            >
+                Arrecadado
+            </text>
+
+            <text
+                x="250"
+                y="92"
+                fill="#172033"
+                font-size="17"
+                font-weight="700"
+            >
                 ${escapar(dinheiro(arrecadado))}
             </text>
 
-            <rect x="${x}" y="${y1}" width="${largura}"
-                height="${altura}" rx="8" fill="#E8F1FF"/>
+            <!-- Legenda valor restante -->
+            <circle
+                cx="235"
+                cy="125"
+                r="6"
+                fill="#DCE8FF"
+            />
 
-            <rect x="${x}" y="${y1}" width="${larguraBarra}"
-                height="${altura}" rx="8" fill="#075BE8"/>
-
-            <text x="${x}" y="119" fill="#172033"
-                font-size="15" font-weight="600">
-                Meta da campanha
+            <text
+                x="250"
+                y="129"
+                fill="#68758A"
+                font-size="13"
+            >
+                Falta arrecadar
             </text>
 
-            <text x="${x + largura}" y="119"
-                text-anchor="end" fill="#172033"
-                font-size="15" font-weight="600">
-                ${escapar(dinheiro(meta))}
+            <text
+                x="250"
+                y="152"
+                fill="#172033"
+                font-size="17"
+                font-weight="700"
+            >
+                ${escapar(dinheiro(falta))}
             </text>
 
-            <rect x="${x}" y="${y2}" width="${largura}"
-                height="${altura}" rx="8" fill="#E8F1FF"/>
-
-            <rect x="${x}" y="${y2}" width="${larguraBarra}"
-                height="${altura}" rx="8" fill="#16A05D"/>
-
-            <text x="${x}" y="199" fill="#68758A"
-                font-size="13">
-                ${Math.round(progresso)}% da meta atingida
+            <!-- Meta total -->
+            <text
+                x="250"
+                y="185"
+                fill="#8994A5"
+                font-size="12"
+            >
+                Meta total: ${escapar(dinheiro(meta))}
             </text>
         `;
     }
@@ -342,17 +424,20 @@ document.addEventListener("DOMContentLoaded", function () {
                     Você ainda não possui projetos para exibir.
                 </p>
             `;
+
             controlarBotaoVerMais();
             return;
         }
 
         const quantidadeInicial = 2;
+
         const visiveis = projetosExpandidos
             ? meusProjetos
             : meusProjetos.slice(0, quantidadeInicial);
 
         lista.innerHTML = visiveis.map(p => {
             const progresso = percentual(p);
+
             const imagem = p.img ||
                 "https://placehold.co/600x400/E8F1FF/075BE8?text=Projeto+Elo";
 
@@ -371,6 +456,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </a>
 
                     <div class="projeto-conteudo">
+
                         <div class="projeto-cabecalho">
                             <span class="projeto-categoria">
                                 ${escapar(p.categoria || "Projeto")}
@@ -403,6 +489,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <div class="projeto-progresso-barra"
                                     style="width:${progresso}%"></div>
                             </div>
+
                             <span>${progresso}% da meta</span>
                         </div>
 
@@ -425,12 +512,14 @@ document.addEventListener("DOMContentLoaded", function () {
                                 class="btn-projeto-editar"
                                 data-acao="editar"
                                 data-id="${Number(p.id)}">
+
                                 <i class="fa-solid fa-pencil"></i>
                                 Editar
                             </button>
 
                             <a class="btn-projeto-ver"
                                 href="projeto.html?id=${Number(p.id)}">
+
                                 Ver campanha
                                 <i class="fa-solid fa-arrow-right"></i>
                             </a>
@@ -443,6 +532,10 @@ document.addEventListener("DOMContentLoaded", function () {
         aplicarEstilosLista();
         controlarBotaoVerMais();
     }
+
+    // ==========================================
+    // BOTÃO VER MAIS PROJETOS
+    // ==========================================
 
     function controlarBotaoVerMais() {
         const lista = $("#listaProjetos");
@@ -457,6 +550,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!botao) {
             botao = document.createElement("button");
+
             botao.type = "button";
             botao.id = "botaoVerMaisProjetos";
             botao.className = "botao-ver-mais-projetos";
@@ -475,6 +569,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         botao.style.display = "block";
     }
+
+    // ==========================================
+    // ESTILOS DA LISTA DE PROJETOS
+    // ==========================================
 
     function aplicarEstilosLista() {
         if ($("#estilosListaProjetos")) return;
@@ -517,7 +615,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 object-fit:cover;
             }
 
-            .projeto-conteudo { min-width:0; }
+            .projeto-conteudo {
+                min-width:0;
+            }
 
             .projeto-cabecalho,
             .projeto-valores,
@@ -565,7 +665,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 font-size:12px;
             }
 
-            .projeto-progresso { margin:10px 0; }
+            .projeto-progresso {
+                margin:10px 0;
+            }
 
             .projeto-progresso-trilho {
                 width:100%;
@@ -637,8 +739,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             @media(max-width:600px) {
-                .projeto-item { grid-template-columns:1fr; }
-                .projeto-imagem { height:190px; }
+                .projeto-item {
+                    grid-template-columns:1fr;
+                }
+
+                .projeto-imagem {
+                    height:190px;
+                }
             }
         `;
 
@@ -672,9 +779,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const dataA = a.criadoEm
                 ? new Date(a.criadoEm).getTime()
                 : 0;
+
             const dataB = b.criadoEm
                 ? new Date(b.criadoEm).getTime()
                 : 0;
+
             return dataB - dataA;
         });
 
@@ -690,13 +799,17 @@ document.addEventListener("DOMContentLoaded", function () {
         lista.innerHTML = atualizacoes.slice(0, 4).map(a => `
             <div class="item-atualizacao">
                 <span class="ponto-atualizacao"></span>
+
                 <div>
                     <strong>${escapar(a.titulo)}</strong>
+
                     <p>${escapar(a.descricao)}</p>
+
                     <small>
                         <a href="projeto.html?id=${Number(a.id)}">
                             ${escapar(a.projeto)}
                         </a>
+
                         ${a.quando ? ` · ${escapar(a.quando)}` : ""}
                     </small>
                 </div>
@@ -775,7 +888,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!resposta.ok) {
             throw new Error(
-                resultado.erro || "Não foi possível salvar as informações."
+                resultado.erro ||
+                "Não foi possível salvar as informações."
             );
         }
 
@@ -800,16 +914,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
         corpo.innerHTML = `
             <form id="formEditarCampanha">
-                <label for="editarTitulo">Título da campanha</label>
-                <input id="editarTitulo" name="titulo"
-                    maxlength="80" required>
 
-                <label for="editarDescricao">Descrição</label>
-                <textarea id="editarDescricao" name="descricao"
-                    maxlength="160" required></textarea>
+                <label for="editarTitulo">
+                    Título da campanha
+                </label>
 
-                <label for="editarCategoria">Categoria</label>
-                <select id="editarCategoria" name="categoria" required>
+                <input id="editarTitulo"
+                    name="titulo"
+                    maxlength="80"
+                    required>
+
+                <label for="editarDescricao">
+                    Descrição
+                </label>
+
+                <textarea id="editarDescricao"
+                    name="descricao"
+                    maxlength="160"
+                    required></textarea>
+
+                <label for="editarCategoria">
+                    Categoria
+                </label>
+
+                <select id="editarCategoria"
+                    name="categoria"
+                    required>
+
                     <option value="Educação">Educação</option>
                     <option value="Tecnologia">Tecnologia</option>
                     <option value="Meio ambiente">Meio ambiente</option>
@@ -818,13 +949,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     <option value="Esporte">Esporte</option>
                 </select>
 
-                <label for="editarMeta">Meta da campanha (R$)</label>
-                <input id="editarMeta" name="meta"
-                    type="number" min="0.01" step="0.01" required>
+                <label for="editarMeta">
+                    Meta da campanha (R$)
+                </label>
+
+                <input id="editarMeta"
+                    name="meta"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    required>
 
                 <p id="mensagemEditar" role="status"></p>
 
-                <button type="submit">Salvar alterações</button>
+                <button type="submit">
+                    Salvar alterações
+                </button>
             </form>
         `;
 
@@ -853,6 +993,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 fecharModal();
                 await carregarProjetos();
+
                 mostrarAviso("Campanha atualizada com sucesso!");
             } catch (erro) {
                 mensagem.textContent = erro.message;
@@ -884,27 +1025,35 @@ document.addEventListener("DOMContentLoaded", function () {
             </p>
 
             <form id="formNovaAtualizacao">
+
                 <label for="novaAtualizacaoTitulo">
                     Título da novidade
                 </label>
 
-                <input id="novaAtualizacaoTitulo" name="titulo"
-                    maxlength="150" required>
+                <input id="novaAtualizacaoTitulo"
+                    name="titulo"
+                    maxlength="150"
+                    required>
 
                 <label for="novaAtualizacaoConteudo">
                     Conteúdo da atualização
                 </label>
 
-                <textarea id="novaAtualizacaoConteudo" name="conteudo"
-                    rows="5" required></textarea>
+                <textarea id="novaAtualizacaoConteudo"
+                    name="conteudo"
+                    rows="5"
+                    required></textarea>
 
                 <p id="mensagemAtualizacao" role="status"></p>
 
-                <button type="submit">Publicar atualização</button>
+                <button type="submit">
+                    Publicar atualização
+                </button>
             </form>
         `;
 
         $("#nomeCampanhaAtualizacao").textContent = projeto.titulo;
+
         modal.hidden = false;
 
         $("#formNovaAtualizacao").addEventListener("submit", async evento => {
@@ -926,7 +1075,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 fecharModal();
                 await carregarProjetos();
 
-                // Mantém selecionada a campanha que recebeu a novidade.
                 selecionarProjeto(projeto.id);
 
                 mostrarAviso("Atualização publicada com sucesso!");
@@ -984,6 +1132,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     abrirModal("Compartilhar projeto", url);
                 }
+
                 break;
             }
 
@@ -1003,7 +1152,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Delegação de eventos: funciona também para os cards renderizados.
+    // ==========================================
+    // EVENTOS DOS BOTÕES
+    // ==========================================
+
     document.addEventListener("click", function (evento) {
         const botao = evento.target.closest("[data-acao]");
         if (!botao) return;
@@ -1030,7 +1182,10 @@ document.addEventListener("DOMContentLoaded", function () {
         projetoSelecionado = projeto;
 
         const seletor = $("#projetoGrafico");
-        if (seletor) seletor.value = String(projeto.id);
+
+        if (seletor) {
+            seletor.value = String(projeto.id);
+        }
 
         atualizarDesempenho();
         atualizarLinkProjeto();
@@ -1052,7 +1207,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 : "projetos.html";
         }
 
-        if (botao) botao.addEventListener("click", buscar);
+        if (botao) {
+            botao.addEventListener("click", buscar);
+        }
 
         if (campo) {
             campo.addEventListener("keydown", evento => {
@@ -1090,7 +1247,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 throw new Error(
-                    dados.erro || "Não foi possível carregar as campanhas."
+                    dados.erro ||
+                    "Não foi possível carregar as campanhas."
                 );
             }
 
@@ -1141,4 +1299,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
     configurarBusca();
     carregarProjetos();
+
 });

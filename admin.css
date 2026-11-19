@@ -900,3 +900,213 @@ tbody td:last-child {
     background-color: #E8F1FF;
     color: #064BC0;
 }
+
+
+/* ================= GERENCIAMENTO DE DOAÇÕES ================= */
+
+#donationTable td {
+    vertical-align: middle;
+}
+
+.status-doacao {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.status-doacao.pendente {
+    background: #FFF4D6;
+    color: #946200;
+}
+
+.status-doacao.confirmada {
+    background: #DDF7E8;
+    color: #16834A;
+}
+
+.status-doacao.cancelada {
+    background: #FDE5E5;
+    color: #B42318;
+}
+
+.status-doacao.reembolsada {
+    background: #E8F1FF;
+    color: #075BE8;
+}
+
+.btn-confirmar-doacao {
+    border: none;
+    border-radius: 8px;
+    padding: 9px 13px;
+    background: #075BE8;
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: .2s;
+    white-space: nowrap;
+}
+
+.btn-confirmar-doacao:hover {
+    background: #064BC0;
+}
+
+.btn-confirmar-doacao:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+#donationTable td {
+    white-space: nowrap;
+}
+
+#donationTable td:nth-child(2) {
+    white-space: normal;
+    min-width: 160px;
+}
+
+#donationTable td:nth-child(1) {
+    min-width: 130px;
+}
+
+#donationTable td:nth-child(7) {
+    min-width: 100px;
+}
+
+
+/* =========================================
+   BOTÕES DE AÇÃO DAS CAMPANHAS
+========================================= */
+
+.acoes-campanha {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
+/* BOTÃO ARQUIVAR */
+button.btn-arquivar-campanha {
+    background: #ffffff !important;
+    color: #64748B !important;
+    border: 1px solid #D9E2EF !important;
+    border-radius: 8px !important;
+    padding: 9px 14px !important;
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: 0.2s ease !important;
+    box-shadow: none !important;
+}
+
+button.btn-arquivar-campanha:hover {
+    background: #FFF7ED !important;
+    color: #C2410C !important;
+    border-color: #FDBA74 !important;
+    transform: translateY(-1px);
+}
+
+/* BOTÃO REATIVAR */
+button.btn-reativar-campanha {
+    background: #F0FDF4 !important;
+    color: #15803D !important;
+    border: 1px solid #BBF7D0 !important;
+    border-radius: 8px !important;
+    padding: 9px 14px !important;
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: 0.2s ease !important;
+    box-shadow: none !important;
+}
+
+button.btn-reativar-campanha:hover {
+    background: #DCFCE7 !important;
+    color: #166534 !important;
+    border-color: #86EFAC !important;
+    transform: translateY(-1px);
+}
+
+/* ESTADO DESABILITADO */
+button.btn-arquivar-campanha:disabled,
+button.btn-reativar-campanha:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* STATUS */
+.status-campanha-admin {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #68758A;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+    .acoes-campanha {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .acoes-campanha button,
+    .acoes-campanha a {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* =========================================
+   BOTÃO VISUALIZAR CAMPANHA
+========================================= */
+
+a.btn-visualizar-campanha {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+
+    background: #F0F6FF !important;
+    color: #075BE8 !important;
+    border: 1px solid #C9DDFF !important;
+    border-radius: 8px !important;
+
+    padding: 9px 14px !important;
+
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+
+    text-decoration: none !important;
+    cursor: pointer !important;
+
+    transition: all 0.2s ease !important;
+    box-shadow: none !important;
+}
+
+a.btn-visualizar-campanha:hover {
+    background: #E0ECFF !important;
+    border-color: #93BFFF !important;
+    color: #0348C5 !important;
+    transform: translateY(-1px);
+}
+
+a.btn-visualizar-campanha:active {
+    transform: translateY(0);
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+    a.btn-visualizar-campanha {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}

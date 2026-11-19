@@ -2416,3 +2416,201 @@ body {
     color: #8793a5;
     flex-shrink: 0;
 }
+
+/* ===== GRÁFICO CIRCULAR DE DESEMPENHO ===== */
+
+.grafico-individual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px 0;
+    overflow: hidden;
+}
+
+#graficoSvg {
+    display: block;
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    min-height: unset;
+    overflow: visible;
+}
+
+@media (max-width: 480px) {
+    .grafico-individual {
+        padding: 10px 0;
+    }
+
+    #graficoSvg {
+        max-width: 100%;
+    }
+}
+
+/* ==========================================
+   PROJETOS CRIADOS — LAYOUT COMPACTO
+========================================== */
+
+#listaProjetos {
+    gap: 12px !important;
+}
+
+.projeto-item {
+    grid-template-columns: 115px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 13px !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+
+.projeto-imagem {
+    height: 115px !important;
+    border-radius: 9px !important;
+}
+
+.projeto-conteudo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.projeto-item h3 {
+    font-size: 15px !important;
+    margin: 5px 0 !important;
+}
+
+.projeto-descricao {
+    display: none !important;
+}
+
+.projeto-categoria,
+.projeto-status {
+    font-size: 11px !important;
+}
+
+.projeto-valores {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+}
+
+.projeto-valores strong {
+    font-size: 14px !important;
+}
+
+.projeto-valores span {
+    font-size: 11px !important;
+}
+
+.projeto-progresso {
+    margin: 7px 0 !important;
+}
+
+.projeto-progresso-trilho {
+    height: 5px !important;
+}
+
+.projeto-progresso > span {
+    font-size: 11px !important;
+}
+
+.projeto-informacoes {
+    margin: 6px 0 !important;
+    gap: 12px !important;
+    font-size: 11px !important;
+}
+
+.projeto-acoes {
+    padding-top: 7px !important;
+    gap: 8px !important;
+}
+
+.btn-projeto-editar,
+.btn-projeto-ver {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    border-radius: 7px !important;
+}
+
+/* ==========================================
+   ATUALIZAÇÕES — FEED COMPACTO
+========================================== */
+
+#listaAtualizacoes {
+    display: flex;
+    flex-direction: column;
+    gap: 0 !important;
+}
+
+.item-atualizacao {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 12px 0 !important;
+    border-bottom: 1px solid #EDF1F7;
+}
+
+.item-atualizacao:last-child {
+    border-bottom: none;
+}
+
+.ponto-atualizacao {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #075BE8;
+}
+
+.item-atualizacao > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-atualizacao strong {
+    display: block;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #172033;
+}
+
+.item-atualizacao p {
+    margin: 4px 0 !important;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #68758A;
+}
+
+.item-atualizacao small {
+    font-size: 11px;
+    color: #8A94A5;
+}
+
+.item-atualizacao small a {
+    color: #075BE8;
+    text-decoration: none;
+}
+
+/* ==========================================
+   RESPONSIVIDADE
+========================================== */
+
+@media (max-width: 600px) {
+    .projeto-item {
+        grid-template-columns: 85px minmax(0, 1fr) !important;
+        gap: 10px !important;
+        padding: 10px !important;
+    }
+
+    .projeto-imagem {
+        height: 90px !important;
+    }
+
+    .projeto-item h3 {
+        font-size: 13px !important;
+    }
+
+    .projeto-informacoes {
+        flex-wrap: wrap;
+    }
+}

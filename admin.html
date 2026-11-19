@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="auth.js"></script>
-    <script src="admin.js?v=2" defer></script>
+   <script src="admin.js?v=3" defer></script>
     <script src="navegacaoAdmin.js" defer></script>
 </head>
 
@@ -374,43 +374,89 @@
 
             </section>
 
-            <!-- ================= DOAÇÕES ================= -->
-            <section class="secao-admin" id="doacoes">
+           
+           
+<!-- ================= DOAÇÕES ================= -->
+<section class="secao-admin" id="doacoes">
 
-                <article class="content-card summary-card">
+    <article class="content-card summary-card">
 
-                    <div class="section-heading">
+        <div class="section-heading">
+            <div>
+                <h2>Doações</h2>
+                <p>Resumo dos valores recebidos pela plataforma.</p>
+            </div>
+        </div>
 
-                        <div>
-                            <h2>Doações</h2>
+        <div class="summary-grid">
 
-                            <p>
-                                Resumo dos valores recebidos pela plataforma.
-                            </p>
-                        </div>
+            <div class="summary-item">
+                <span class="summary-icon icon-yellow">
+                    <i class="fa-solid fa-hand-holding-heart"></i>
+                </span>
 
-                    </div>
+                <div>
+                    <strong id="summaryDonations">R$ 0,00</strong>
+                    <p>Doações confirmadas</p>
+                </div>
+            </div>
 
-                    <div class="summary-grid">
+        </div>
 
-                        <div class="summary-item">
+    </article>
 
-                            <span class="summary-icon icon-yellow">
-                                <i class="fa-solid fa-hand-holding-heart"></i>
-                            </span>
+    <!-- GERENCIAMENTO DAS DOAÇÕES -->
+    <article class="content-card campaigns-card">
 
-                            <div>
-                                <strong id="summaryDonations">R$ 0,00</strong>
-                                <p>Doações confirmadas</p>
-                            </div>
+        <div class="section-heading">
+            <div>
+                <h2>Gerenciar doações</h2>
+                <p>Confira os registros e confirme as doações pendentes.</p>
+            </div>
 
-                        </div>
+            <button type="button" class="refresh-button"
+                id="refreshDonationsButton">
+                <i class="fa-solid fa-rotate"></i>
+                Atualizar
+            </button>
+        </div>
 
-                    </div>
+        <div class="alert" id="donationFeedback"
+            role="status" aria-live="polite" hidden>
+        </div>
 
-                </article>
+        <div class="table-wrap">
 
-            </section>
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Doador</th>
+                        <th>Campanha</th>
+                        <th>Valor</th>
+                        <th>Pagamento</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody id="donationTable">
+                    <tr>
+                        <td colspan="7" class="empty-cell">
+                            Carregando doações...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </article>
+
+</section>
+
 
             <!-- RODAPÉ -->
 
